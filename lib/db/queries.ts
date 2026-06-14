@@ -272,14 +272,72 @@ export async function deleteChatById({ id }: { id: string }) {
   }
 }
 
-export async function getChatsByUserId({ id }: { id: string }) {
-  if (!db) return [];
+export async function getChatsByUserId({
+  id,
+  limit,
+  startingAfter,
+  endingBefore,
+}: {
+  id: string;
+  limit: number;
+  startingAfter: string | null;
+  endingBefore: string | null;
+}) {
+  if (!db) {
+    return {
+      chats: [],
+      hasMore: false,
+    };
+  }
   try {
-    return await db
-      .select()
-      .from(chat)
-      .where(eq(chat.userId, id))
-      .orderBy(desc(chat.createdAt));
+    const extendedLimit = limit + 1;
+
+    const baseQuery = (whereCondition?: SQL<any>) =>
+      db
+        .select()
+        .from(chat)
+        .where(
+          whereCondition
+            ? and(whereCondition, eq(chat.userId, id))
+            : eq(chat.userId, id)
+        )
+        .orderBy(desc(chat.createdAt))
+        .limit(extendedLimit);
+
+    let filteredChats: Array<any> = [];
+
+    if (startingAfter) {
+      const [selectedChat] = await db
+        .select()
+        .from(chat)
+        .where(eq(chat.id, startingAfter))
+        .limit(1);
+
+      if (!selectedChat) {
+        throw new ChatSDKError("not_found:database", `Chat with id ${startingAfter} not found`);
+      }
+      filteredChats = (await baseQuery(gt(chat.createdAt, selectedChat.createdAt))) as any;
+    } else if (endingBefore) {
+      const [selectedChat] = await db
+        .select()
+        .from(chat)
+        .where(eq(chat.id, endingBefore))
+        .limit(1);
+
+      if (!selectedChat) {
+        throw new ChatSDKError("not_found:database", `Chat with id ${endingBefore} not found`);
+      }
+      filteredChats = (await baseQuery(lt(chat.createdAt, selectedChat.createdAt))) as any;
+    } else {
+      filteredChats = (await baseQuery()) as any;
+    }
+
+    const hasMore = filteredChats.length > limit;
+
+    return {
+      chats: hasMore ? filteredChats.slice(0, limit) : filteredChats,
+      hasMore,
+    };
   } catch (error) {
     throw new ChatSDKError("bad_request:database", "Failed to get chats by user id");
   }
