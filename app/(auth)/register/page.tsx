@@ -58,8 +58,8 @@ export default function Page() {
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 border-t-4 border-t-yellow-500 rounded-3xl p-8 shadow-2xl relative overflow-hidden z-10">
         {/* Brand logo & header */}
         <div className="flex flex-col items-center gap-3 text-center mb-8">
-          <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex items-center justify-center p-1.5 shadow-yellow-500/10">
-            <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain" />
+          <div className="relative w-28 h-28 rounded-2xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex items-center justify-center p-0.5 shadow-yellow-500/10">
+            <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain scale-110" />
           </div>
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">

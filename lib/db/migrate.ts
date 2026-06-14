@@ -8,11 +8,13 @@ config({
 });
 
 const runMigrate = async () => {
-  if (!process.env.POSTGRES_URL) {
-    throw new Error('POSTGRES_URL is not defined');
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (!dbUrl) {
+    console.log('⚠️ No DATABASE_URL or POSTGRES_URL found. Skipping build-time migrations.');
+    process.exit(0);
   }
 
-  const connection = postgres(process.env.POSTGRES_URL, { max: 1 });
+  const connection = postgres(dbUrl, { max: 1 });
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');

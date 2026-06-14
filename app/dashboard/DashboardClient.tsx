@@ -348,8 +348,8 @@ export function DashboardClient({ user }: { user: User }) {
       <header className="border-b border-slate-900 bg-slate-900 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
           {/* Custom logo badge */}
-          <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex-shrink-0 flex items-center justify-center p-0.5 shadow-yellow-500/10">
-            <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain" />
+          <div className="relative w-14 h-14 rounded-xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex-shrink-0 flex items-center justify-center p-0.5 shadow-yellow-500/10">
+            <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain scale-110" />
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">

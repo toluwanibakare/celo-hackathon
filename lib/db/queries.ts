@@ -40,21 +40,23 @@ import { mockDb } from "./mockDb";
 export const PUBLIC_USER_ID = "11111111-1111-1111-1111-111111111111";
 export const PUBLIC_USER_EMAIL = "public@local";
 
+const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
 const isMockMode =
-  !process.env.POSTGRES_URL ||
-  process.env.POSTGRES_URL === "****" ||
-  process.env.POSTGRES_URL.includes("placeholder") ||
-  process.env.POSTGRES_URL.includes("your_postgres");
+  !dbUrl ||
+  dbUrl === "****" ||
+  dbUrl.includes("placeholder") ||
+  dbUrl.includes("your_postgres");
 
 let db: any = null;
 let client: any = null;
 
 if (!isMockMode) {
   try {
-    client = postgres(process.env.POSTGRES_URL as string);
+    client = postgres(dbUrl as string);
     db = drizzle(client);
   } catch (error) {
-    console.warn("Postgres connection failed, falling back to mock mode:", error);
+    console.warn("Database connection failed, falling back to mock mode:", error);
   }
 }
 
