@@ -24,73 +24,99 @@
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 240 10% 3.9%;
+        --background: 36 25% 97%; /* Gypsum warm white #FAF8F5 */
+        --foreground: 152 45% 11%; /* Celo Forest dark green #102a1e */
         --card: 0 0% 100%;
-        --card-foreground: 240 10% 3.9%;
+        --card-foreground: 152 45% 11%;
         --popover: 0 0% 100%;
-        --popover-foreground: 240 10% 3.9%;
-        --primary: 240 5.9% 10%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 240 4.8% 95.9%;
-        --secondary-foreground: 240 5.9% 10%;
-        --muted: 240 4.8% 95.9%;
-        --muted-foreground: 240 3.8% 46.1%;
-        --accent: 240 4.8% 95.9%;
-        --accent-foreground: 240 5.9% 10%;
+        --popover-foreground: 152 45% 11%;
+        --primary: 142 60% 40%; /* Celo Green #2CA867 */
+        --primary-foreground: 36 25% 97%;
+        --secondary: 43 90% 60%; /* Celo Gold #FBCC5C */
+        --secondary-foreground: 152 45% 11%;
+        --muted: 36 12% 92%;
+        --muted-foreground: 152 15% 40%;
+        --accent: 43 90% 60%;
+        --accent-foreground: 152 45% 11%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
-        --border: 240 5.9% 90%;
-        --input: 240 5.9% 90%;
-        --ring: 240 10% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
-        --sidebar-background: 0 0% 98%;
-        --sidebar-foreground: 240 5.3% 26.1%;
-        --sidebar-primary: 240 5.9% 10%;
-        --sidebar-primary-foreground: 0 0% 98%;
-        --sidebar-accent: 240 4.8% 95.9%;
-        --sidebar-accent-foreground: 240 5.9% 10%;
-        --sidebar-border: 220 13% 91%;
-        --sidebar-ring: 217.2 91.2% 59.8%;
+        --border: 36 12% 86%; /* Warm gray borders */
+        --input: 36 12% 86%;
+        --ring: 142 60% 40%;
+        --chart-1: 142 60% 40%;
+        --chart-2: 43 90% 60%;
+        --chart-3: 152 45% 11%;
+        --chart-4: 12 76% 61%;
+        --chart-5: 173 58% 39%;
+        --radius: 0.75rem; /* Smoother premium rounded corners */
+        --sidebar-background: 36 25% 95%;
+        --sidebar-foreground: 152 20% 30%;
+        --sidebar-primary: 142 60% 40%;
+        --sidebar-primary-foreground: 36 25% 97%;
+        --sidebar-accent: 36 12% 90%;
+        --sidebar-accent-foreground: 152 45% 11%;
+        --sidebar-border: 36 12% 86%;
+        --sidebar-ring: 142 60% 40%;
+
+        /* Celo Light-theme slate remappings */
+        --slate-50: 36 25% 99%;
+        --slate-100: 36 20% 95%;
+        --slate-200: 36 20% 90%;
+        --slate-300: 36 12% 80%;
+        --slate-400: 152 10% 45%;
+        --slate-500: 152 10% 35%;
+        --slate-600: 152 15% 25%;
+        --slate-700: 152 20% 20%;
+        --slate-800: 36 12% 86%; /* warm border */
+        --slate-900: 36 20% 94%; /* warm cream card */
+        --slate-950: 36 25% 97%; /* gypsum background */
     }
     .dark {
-        --background: 224 71% 4%;
-        --foreground: 210 20% 98%;
-        --card: 224 71% 6%;
-        --card-foreground: 210 20% 98%;
-        --popover: 224 71% 4%;
-        --popover-foreground: 210 20% 98%;
-        --primary: 142.1 76.2% 45%;
-        --primary-foreground: 224 71% 4%;
-        --secondary: 221.2 83.2% 53.3%;
-        --secondary-foreground: 210 20% 98%;
-        --muted: 224 71% 12%;
-        --muted-foreground: 215.4 16.3% 56.9%;
-        --accent: 47.9 95.8% 51.2%;
-        --accent-foreground: 224 71% 4%;
+        --background: 152 45% 6%; /* Celo deep forest dark green #08150f */
+        --foreground: 36 25% 95%; /* Light gypsum text */
+        --card: 152 45% 8%; /* Dark forest card */
+        --card-foreground: 36 25% 95%;
+        --popover: 152 45% 6%;
+        --popover-foreground: 36 25% 95%;
+        --primary: 142 60% 45%; /* Bright Celo Green */
+        --primary-foreground: 152 45% 6%;
+        --secondary: 43 90% 60%; /* Warm Gold */
+        --secondary-foreground: 152 45% 6%;
+        --muted: 152 20% 12%;
+        --muted-foreground: 152 15% 65%;
+        --accent: 43 90% 60%;
+        --accent-foreground: 152 45% 6%;
         --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 210 20% 98%;
-        --border: 224 71% 15%;
-        --input: 224 71% 12%;
-        --ring: 221.2 83.2% 53.3%;
-        --chart-1: 221.2 83.2% 53.3%;
-        --chart-2: 142.1 76.2% 45%;
-        --chart-3: 47.9 95.8% 51.2%;
+        --destructive-foreground: 36 25% 95%;
+        --border: 152 20% 16%; /* Forest tinted borders */
+        --input: 152 20% 14%;
+        --ring: 142 60% 45%;
+        --chart-1: 142 60% 45%;
+        --chart-2: 43 90% 60%;
+        --chart-3: 36 25% 95%;
         --chart-4: 280 65% 60%;
         --chart-5: 340 75% 55%;
-        --sidebar-background: 224 71% 6%;
-        --sidebar-foreground: 215.4 16.3% 56.9%;
-        --sidebar-primary: 221.2 83.2% 53.3%;
-        --sidebar-primary-foreground: 210 20% 98%;
-        --sidebar-accent: 224 71% 12%;
-        --sidebar-accent-foreground: 210 20% 98%;
-        --sidebar-border: 224 71% 15%;
-        --sidebar-ring: 221.2 83.2% 53.3%;
+        --sidebar-background: 152 45% 8%;
+        --sidebar-foreground: 152 15% 70%;
+        --sidebar-primary: 142 60% 45%;
+        --sidebar-primary-foreground: 152 45% 6%;
+        --sidebar-accent: 152 20% 12%;
+        --sidebar-accent-foreground: 36 25% 95%;
+        --sidebar-border: 152 20% 16%;
+        --sidebar-ring: 142 60% 45%;
+
+        /* Celo Dark-theme slate remappings */
+        --slate-50: 152 15% 95%;
+        --slate-100: 36 25% 95%;
+        --slate-200: 36 25% 90%;
+        --slate-300: 36 25% 80%;
+        --slate-400: 36 25% 65%;
+        --slate-500: 152 10% 75%;
+        --slate-600: 152 15% 65%;
+        --slate-700: 152 15% 55%;
+        --slate-800: 152 20% 16%; /* tinted forest border */
+        --slate-900: 152 45% 8%; /* dark forest card */
+        --slate-950: 152 45% 6%; /* deep forest background */
     }
 }
 

@@ -525,7 +525,14 @@ export async function getSavingsGoals(userId: string): Promise<Array<SavingsGoal
 
 export async function createSavingsGoal(
   userId: string,
-  data: { title: string; targetAmount: string; targetDate: Date; currentAmount?: string }
+  data: {
+    title: string;
+    targetAmount: string;
+    targetDate: Date;
+    currentAmount?: string;
+    vaultAddress?: string;
+    vaultPrivateKey?: string;
+  }
 ): Promise<SavingsGoal | null> {
   if (!db) {
     return mockDb.createSavingsGoal(userId, {
@@ -533,6 +540,8 @@ export async function createSavingsGoal(
       targetAmount: data.targetAmount,
       targetDate: data.targetDate.toISOString(),
       currentAmount: data.currentAmount,
+      vaultAddress: data.vaultAddress,
+      vaultPrivateKey: data.vaultPrivateKey,
     }) as any;
   }
   try {
@@ -544,6 +553,8 @@ export async function createSavingsGoal(
         targetAmount: data.targetAmount,
         currentAmount: data.currentAmount || "0",
         targetDate: data.targetDate,
+        vaultAddress: data.vaultAddress,
+        vaultPrivateKey: data.vaultPrivateKey,
       })
       .returning();
     return created || null;

@@ -235,7 +235,7 @@ export const mockDb = {
     return db.savingsGoals.filter((g) => g.userId === userId);
   },
 
-  createSavingsGoal: (userId: string, data: { title: string; targetAmount: string; targetDate: string; currentAmount?: string }) => {
+  createSavingsGoal: (userId: string, data: { title: string; targetAmount: string; targetDate: string; currentAmount?: string; vaultAddress?: string; vaultPrivateKey?: string }) => {
     const db = initMockDb();
     const newGoal = {
       id: crypto.randomUUID(),
@@ -244,6 +244,8 @@ export const mockDb = {
       targetAmount: data.targetAmount,
       currentAmount: data.currentAmount || "0",
       targetDate: data.targetDate,
+      vaultAddress: data.vaultAddress || null,
+      vaultPrivateKey: data.vaultPrivateKey || null,
       createdAt: new Date().toISOString(),
     };
     db.savingsGoals.push(newGoal);

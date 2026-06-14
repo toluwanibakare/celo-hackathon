@@ -127,6 +127,8 @@ export const savingsGoal = pgTable('SavingsGoal', {
   targetAmount: numeric('targetAmount', { precision: 18, scale: 2 }).notNull(),
   currentAmount: numeric('currentAmount', { precision: 18, scale: 2 }).notNull().default('0'),
   targetDate: timestamp('targetDate').notNull(),
+  vaultAddress: varchar('vaultAddress', { length: 66 }),
+  vaultPrivateKey: varchar('vaultPrivateKey', { length: 128 }),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 

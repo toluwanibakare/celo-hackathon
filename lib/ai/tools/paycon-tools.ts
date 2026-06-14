@@ -10,7 +10,7 @@ import {
   getTransactions,
   getUserById,
 } from "@/lib/db/queries";
-import { getStablecoinBalances } from "@/lib/wallet";
+import { getStablecoinBalances, generateCeloWallet, executeStablecoinTransfer } from "@/lib/wallet";
 
 type Session = any;
 
@@ -102,7 +102,7 @@ export const payconTools = ({ session }: PayconToolsProps) => {
     }),
 
     createSavingsGoal: tool({
-      description: "Create a new savings goal for the user.",
+      description: "Create a new savings goal for the user. This automatically generates a unique on-chain vault address for this goal.",
       inputSchema: z.object({
         title: z.string().describe("The name or title of the savings goal (e.g. 'New Laptop')"),
         targetAmount: z.number().describe("The target savings amount in USD"),
@@ -113,22 +113,31 @@ export const payconTools = ({ session }: PayconToolsProps) => {
           return { error: "No user authenticated. Please sign in." };
         }
 
+        // Generate Celo wallet for the goal's vault
+        const vault = generateCeloWallet();
+
         const goal = await createSavingsGoal(userId, {
           title,
           targetAmount: String(targetAmount),
           targetDate: new Date(targetDate),
+          vaultAddress: vault.address,
+          vaultPrivateKey: vault.privateKey,
         });
 
         if (!goal) {
           return { error: "Failed to create savings goal." };
         }
 
-        return { success: true, message: `Savings goal "${title}" created successfully!`, goal };
+        return { 
+          success: true, 
+          message: `Savings goal "${title}" created successfully! A secure Celo Sepolia vault address has been generated for it: ${vault.address}`, 
+          goal 
+        };
       },
     }),
 
     contributeToSavings: tool({
-      description: "Contribute/save money from the user's wallet towards an active savings goal.",
+      description: "Contribute/save money from the user's wallet towards an active savings goal. This performs a real on-chain transfer to the goal's vault.",
       inputSchema: z.object({
         goalId: z.string().describe("The unique ID of the savings goal"),
         amount: z.number().describe("The amount to contribute in USD/cUSD"),
@@ -139,10 +148,42 @@ export const payconTools = ({ session }: PayconToolsProps) => {
           return { error: "No user authenticated. Please sign in." };
         }
 
+        const userData = await getUserById(userId);
+        if (!userData || !userData.walletPrivateKey) {
+          return { error: "User wallet private key not found. Please set up your wallet." };
+        }
+
         const goals = await getSavingsGoals(userId);
         const goal = goals.find((g) => g.id === goalId);
         if (!goal) {
           return { error: "Savings goal not found." };
+        }
+
+        // Initialize vault if not present (legacy goals)
+        let vaultAddress = goal.vaultAddress;
+        if (!vaultAddress) {
+          const vault = generateCeloWallet();
+          vaultAddress = vault.address;
+          await updateSavingsGoal(goalId, {
+            vaultAddress: vault.address,
+            vaultPrivateKey: vault.privateKey,
+          } as any);
+        }
+
+        let txHash = "";
+        try {
+          // Perform real on-chain stablecoin transfer to the goal's vault
+          txHash = await executeStablecoinTransfer(
+            userData.walletPrivateKey,
+            vaultAddress,
+            amount,
+            token
+          );
+        } catch (error: any) {
+          console.error("On-chain transfer failed:", error);
+          return { 
+            error: `Failed to complete on-chain transfer: ${error.message || "Please ensure your wallet has sufficient balance and CELO for gas."}` 
+          };
         }
 
         const newCurrentAmount = (Number(goal.currentAmount) + amount).toFixed(2);
@@ -151,27 +192,30 @@ export const payconTools = ({ session }: PayconToolsProps) => {
         });
 
         if (!updatedGoal) {
-          return { error: "Failed to update savings goal." };
+          return { error: "Failed to update savings goal in database." };
         }
 
-        // Record the transaction
+        // Record the transaction with the on-chain hash
         await createTransaction(userId, {
           type: "savings_contribution",
           amount: String(amount),
           token: token,
           description: `Saved towards "${goal.title}"`,
+          status: "completed",
+          txHash: txHash,
         });
 
         return {
           success: true,
-          message: `Successfully contributed $${amount} to "${goal.title}".`,
+          message: `Successfully contributed $${amount} to "${goal.title}" on-chain!`,
+          txHash: txHash,
           goal: updatedGoal,
         };
       },
     }),
 
     payBill: tool({
-      description: "Pay an upcoming bill from the user's wallet.",
+      description: "Pay an upcoming bill from the user's wallet. This performs a real on-chain transfer to the merchant.",
       inputSchema: z.object({
         billId: z.string().describe("The unique ID of the bill to pay"),
         token: z.enum(["cUSD", "USDC"]).optional().default("cUSD").describe("The token to use (default cUSD)"),
@@ -179,6 +223,11 @@ export const payconTools = ({ session }: PayconToolsProps) => {
       execute: async ({ billId, token }) => {
         if (!userId || userId === "public-user") {
           return { error: "No user authenticated. Please sign in." };
+        }
+
+        const userData = await getUserById(userId);
+        if (!userData || !userData.walletPrivateKey) {
+          return { error: "User wallet private key not found. Please set up your wallet." };
         }
 
         const bills = await getBills(userId);
@@ -192,24 +241,45 @@ export const payconTools = ({ session }: PayconToolsProps) => {
           return { error: "This bill has already been paid." };
         }
 
+        const merchantAddress = "0x000000000000000000000000000000000000beef";
+        let txHash = "";
+
+        try {
+          // Perform real on-chain stablecoin transfer to the merchant
+          txHash = await executeStablecoinTransfer(
+            userData.walletPrivateKey,
+            merchantAddress,
+            Number(targetBill.amount),
+            token
+          );
+        } catch (error: any) {
+          console.error("On-chain bill payment failed:", error);
+          return { 
+            error: `Failed to pay bill on-chain: ${error.message || "Please ensure your wallet has sufficient balance and CELO for gas."}` 
+          };
+        }
+
         // Update bill paid status
         const updated = await updateBill(billId, { isPaid: true });
 
         if (!updated) {
-          return { error: "Failed to pay bill." };
+          return { error: "Failed to update bill paid status in database." };
         }
 
-        // Record the transaction
+        // Record the transaction with the on-chain hash
         await createTransaction(userId, {
           type: "bill_payment",
           amount: targetBill.amount,
           token: token,
           description: `Paid bill "${targetBill.title}"`,
+          status: "completed",
+          txHash: txHash,
         });
 
         return {
           success: true,
-          message: `Bill "${targetBill.title}" ($${targetBill.amount}) paid successfully.`,
+          message: `Bill "${targetBill.title}" ($${targetBill.amount}) paid successfully on-chain!`,
+          txHash: txHash,
           bill: updated,
         };
       },

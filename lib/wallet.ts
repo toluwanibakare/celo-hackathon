@@ -1,4 +1,4 @@
-import { createPublicClient, http, parseAbi } from "viem";
+import { createPublicClient, createWalletClient, http, parseAbi } from "viem";
 import { celoSepolia } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
@@ -76,4 +76,42 @@ export async function getStablecoinBalances(address: string) {
       usdcRaw: "0",
     };
   }
+}
+
+/**
+ * Executes a real stablecoin (cUSD or USDC) transfer on Celo Sepolia.
+ * Signs the transaction with the sender's private key and waits for block confirmation.
+ */
+export async function executeStablecoinTransfer(
+  senderPrivateKey: string,
+  recipientAddress: string,
+  amount: number,
+  token: "cUSD" | "USDC"
+): Promise<string> {
+  const formattedKey = senderPrivateKey.startsWith("0x") ? senderPrivateKey : `0x${senderPrivateKey}`;
+  const account = privateKeyToAccount(formattedKey as `0x${string}`);
+
+  const walletClient = createWalletClient({
+    account,
+    chain: celoSepolia,
+    transport: http("https://forno.celo-sepolia.celo-testnet.org"),
+  });
+
+  const tokenAddress = token === "cUSD" ? CUSD_SEPOLIA_ADDRESS : USDC_SEPOLIA_ADDRESS;
+  const decimals = token === "cUSD" ? 18 : 6;
+
+  // Convert amount to base units
+  const parsedAmount = BigInt(Math.round(amount * Math.pow(10, decimals)));
+
+  const txHash = await walletClient.writeContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "transfer",
+    args: [recipientAddress as `0x${string}`, parsedAmount],
+  });
+
+  // Wait for confirmation block
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+  return txHash;
 }
