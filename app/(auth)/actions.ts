@@ -136,3 +136,8 @@ export const register = async (
     return { status: "failed" };
   }
 };
+
+export const logout = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete("paycon-session");
+};

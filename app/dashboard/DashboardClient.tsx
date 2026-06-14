@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { logout } from "@/app/(auth)/actions";
 
 interface User {
   id: string;
@@ -116,21 +117,12 @@ export function DashboardClient({ user }: { user: User }) {
   // Sign out
   const handleSignOut = async () => {
     try {
-      const res = await fetch("/api/paycon/user", { method: "DELETE" }); // clearing session
-      if (res.ok) {
-        toast.success("Logged out successfully");
-        router.push("/login");
-        router.refresh();
-      } else {
-        // Fallback signOut
-        document.cookie = "paycon-session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-        router.push("/login");
-        router.refresh();
-      }
-    } catch (e) {
-      document.cookie = "paycon-session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      await logout();
+      toast.success("Logged out successfully");
       router.push("/login");
       router.refresh();
+    } catch (e) {
+      toast.error("Logout failed");
     }
   };
 
