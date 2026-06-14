@@ -1,0 +1,13 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "Paycon",
+  "description": "Paycon is an AI Financial Coach that helps users save, manage money, and pay bills on the Celo blockchain.",
+  "image": "https://raw.githubusercontent.com/toluwanibakare/celo-hackathon/main/public/images/logo.png",
+  "services": [
+    {
+      "name": "web",
+      "endpoint": "https://github.com/toluwanibakare/celo-hackathon"
+    }
+  ],
+  "supportedTrust": ["reputation", "validation"]
+}
