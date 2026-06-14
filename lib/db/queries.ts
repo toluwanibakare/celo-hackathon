@@ -446,7 +446,7 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       .orderBy(asc(stream.createdAt))
       .execute();
 
-    return streamIds.map(({ id }) => id);
+    return streamIds.map(({ id }: { id: string }) => id);
   } catch (error) {
     throw new ChatSDKError("bad_request:database", "Failed to get stream ids by chat id");
   }
