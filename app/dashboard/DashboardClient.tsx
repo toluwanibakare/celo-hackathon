@@ -207,7 +207,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
     // Verify balance
     const needed = Number(contributeAmount);
     if (balances.cUSD < needed) {
-      toast.error(`Insufficient cUSD balance. You have $${balances.cUSD.toFixed(2)} cUSD`);
+      toast.error(`Insufficient USDm balance. You have $${balances.cUSD.toFixed(2)} USDm`);
       return;
     }
 
@@ -276,11 +276,11 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   const handlePayBill = async (billId: string, title: string, amount: string) => {
     const cost = Number(amount);
     if (balances.cUSD < cost) {
-      toast.error(`Insufficient cUSD balance to pay this bill ($${cost.toFixed(2)} needed, $${balances.cUSD.toFixed(2)} available).`);
+      toast.error(`Insufficient USDm balance to pay this bill ($${cost.toFixed(2)} needed, $${balances.cUSD.toFixed(2)} available).`);
       return;
     }
 
-    const confirmPay = window.confirm(`Are you sure you want to pay "${title}" for $${amount} cUSD?`);
+    const confirmPay = window.confirm(`Are you sure you want to pay "${title}" for $${amount} USDm?`);
     if (!confirmPay) return;
 
     try {
@@ -416,7 +416,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
               <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-800">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">cUSD Balance</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">USDm (cUSD) Balance</span>
                   <p className="text-2xl md:text-3xl font-black text-emerald-400 mt-1">
                     ${balances.cUSD.toFixed(2)}
                   </p>
@@ -455,7 +455,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                 <div className="space-y-4">
                   <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
                     <span className="text-slate-400">Total Capital:</span>
-                    <span className="font-extrabold text-slate-200">${balances.cUSD.toFixed(2)} cUSD</span>
+                    <span className="font-extrabold text-slate-200">${balances.cUSD.toFixed(2)} USDm (cUSD)</span>
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
                     <span className="text-slate-400">Savings Target:</span>
@@ -553,7 +553,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                         <div className="flex justify-between items-center text-xs text-slate-400">
                           <span>
-                            Saved: <strong className="text-slate-200 font-bold">${current.toFixed(2)}</strong> / ${target.toFixed(2)} cUSD
+                            Saved: <strong className="text-slate-200 font-bold">${current.toFixed(2)}</strong> / ${target.toFixed(2)} USDm (cUSD)
                           </span>
                           {!isCompleted && (
                             <button
@@ -578,7 +578,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                             >
                               <input
                                 type="number"
-                                placeholder="Amount in cUSD"
+                                placeholder="Amount in USDm"
                                 value={contributeAmount}
                                 onChange={(e) => setContributeAmount(e.target.value)}
                                 className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 text-slate-100 flex-1"
@@ -662,7 +662,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <span className="font-extrabold text-slate-200 block">${Number(bill.amount).toFixed(2)} cUSD</span>
+                            <span className="font-extrabold text-slate-200 block">${Number(bill.amount).toFixed(2)} USDm (cUSD)</span>
                           </div>
 
                           <div className="flex items-center gap-1.5">
@@ -810,7 +810,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     onChange={(e) => setDepositToken(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="cUSD">cUSD (Celo Dollar)</option>
+                    <option value="cUSD">USDm (cUSD)</option>
                     <option value="USDC">USDC (USD Coin)</option>
                   </select>
                 </div>
@@ -881,7 +881,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                 <div>
                   <label htmlFor="goalTargetAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Target Amount (cUSD)
+                    Target Amount (USDm)
                   </label>
                   <input
                     id="goalTargetAmount"
@@ -959,7 +959,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                 <div>
                   <label htmlFor="billAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Bill Amount (cUSD)
+                    Bill Amount (USDm)
                   </label>
                   <input
                     id="billAmount"

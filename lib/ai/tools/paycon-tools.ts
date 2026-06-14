@@ -178,7 +178,7 @@ export const payconTools = ({ session }: PayconToolsProps) => {
             userData.walletPrivateKey,
             vaultAddress,
             amount,
-            token
+            token || "cUSD"
           );
         } catch (error: any) {
           console.error("On-chain transfer failed:", error);
@@ -266,7 +266,7 @@ export const payconTools = ({ session }: PayconToolsProps) => {
             userData.walletPrivateKey,
             merchantAddress,
             Number(targetBill.amount),
-            token
+            token || "cUSD"
           );
         } catch (error: any) {
           console.error("On-chain bill payment failed:", error);
