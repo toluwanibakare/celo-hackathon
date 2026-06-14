@@ -40,7 +40,7 @@ export default function Page() {
     } else if (state.status === 'success') {
       setIsSuccessful(true);
       (updateSession as any)();
-      router.refresh();
+      router.push('/dashboard');
     }
   }, [state.status, router]);
 

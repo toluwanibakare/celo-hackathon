@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  numeric,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -16,6 +17,8 @@ export const user = pgTable('User', {
   email: varchar('email', { length: 64 }),
   password: varchar('password', { length: 64 }),
   walletAddress: varchar('walletAddress', { length: 64 }).unique(),
+  phoneNumber: varchar('phoneNumber', { length: 32 }).unique(),
+  walletPrivateKey: varchar('walletPrivateKey', { length: 128 }),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -113,3 +116,61 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+// Paycon-specific tables
+export const savingsGoal = pgTable('SavingsGoal', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  title: text('title').notNull(),
+  targetAmount: numeric('targetAmount', { precision: 18, scale: 2 }).notNull(),
+  currentAmount: numeric('currentAmount', { precision: 18, scale: 2 }).notNull().default('0'),
+  targetDate: timestamp('targetDate').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type SavingsGoal = InferSelectModel<typeof savingsGoal>;
+
+export const bill = pgTable('Bill', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  title: text('title').notNull(),
+  amount: numeric('amount', { precision: 18, scale: 2 }).notNull(),
+  dueDate: timestamp('dueDate').notNull(),
+  frequency: varchar('frequency', { length: 32 }).notNull().default('monthly'), // 'monthly', 'weekly', 'once'
+  isPaid: boolean('isPaid').notNull().default(false),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type Bill = InferSelectModel<typeof bill>;
+
+export const transaction = pgTable('Transaction', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  type: varchar('type', { length: 32 }).notNull(), // 'deposit', 'withdrawal', 'bill_payment', 'savings_contribution'
+  amount: numeric('amount', { precision: 18, scale: 2 }).notNull(),
+  token: varchar('token', { length: 8 }).notNull().default('cUSD'), // 'cUSD', 'USDC'
+  status: varchar('status', { length: 16 }).notNull().default('completed'), // 'pending', 'completed', 'failed'
+  txHash: varchar('txHash', { length: 66 }),
+  description: text('description'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type Transaction = InferSelectModel<typeof transaction>;
+
+export const otpVerification = pgTable('OtpVerification', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  email: varchar('email', { length: 64 }).notNull(),
+  otp: varchar('otp', { length: 6 }).notNull(),
+  purpose: varchar('purpose', { length: 32 }).notNull(), // 'view_balance', 'payment', 'withdrawal'
+  expiresAt: timestamp('expiresAt').notNull(),
+  isVerified: boolean('isVerified').notNull().default(false),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type OtpVerification = InferSelectModel<typeof otpVerification>;

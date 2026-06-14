@@ -41,9 +41,9 @@ export default function Page() {
 
       setIsSuccessful(true);
       (updateSession as any)();
-      router.refresh();
+      router.push('/dashboard');
     }
-  }, [state]);
+  }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);
@@ -59,12 +59,12 @@ export default function Page() {
             Create an account with your email and password
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email}>
+        <AuthForm action={handleSubmit} defaultEmail={email} showPhoneNumber={true}>
           <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {'Already have an account? '}
             <Link
-              href="/login"
+               href="/login"
               className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
             >
               Sign in

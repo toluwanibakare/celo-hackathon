@@ -27,17 +27,30 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarHeader>
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center">
-            <Link
-              href="/"
-              onClick={() => {
-                setOpenMobile(false);
-              }}
-              className="flex flex-row gap-3 items-center"
-            >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Chatbot
-              </span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                onClick={() => {
+                  setOpenMobile(false);
+                }}
+                className="flex flex-row gap-3 items-center"
+              >
+                <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
+                  Paycon Chat
+                </span>
+              </Link>
+              {user && (
+                <Link
+                  href="/dashboard"
+                  onClick={() => {
+                    setOpenMobile(false);
+                  }}
+                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20 transition"
+                >
+                  Dashboard
+                </Link>
+              )}
+            </div>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
