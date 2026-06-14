@@ -212,7 +212,7 @@ export const payconTools = ({ session }: PayconToolsProps) => {
             await sendReceiptEmail(userData.email, {
               type: "savings_contribution",
               amount: String(amount),
-              token,
+              token: token || "cUSD",
               txHash,
               description: `Saved towards "${goal.title}"`,
             });
@@ -298,7 +298,7 @@ export const payconTools = ({ session }: PayconToolsProps) => {
             await sendReceiptEmail(userData.email, {
               type: "bill_payment",
               amount: targetBill.amount,
-              token,
+              token: token || "cUSD",
               txHash,
               description: `Paid bill "${targetBill.title}"`,
             });
