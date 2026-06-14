@@ -2,8 +2,6 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { availableChatModels, DEFAULT_ALIAS_CHAT_MODEL_ID, DEFAULT_ALIAS_REASONING_MODEL_ID } from "@/lib/ai/providers";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   const cookieStore = await cookies();
   const current = cookieStore.get("chat-model")?.value || DEFAULT_ALIAS_CHAT_MODEL_ID;
