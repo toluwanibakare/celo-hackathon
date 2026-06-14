@@ -14,5 +14,12 @@ export default async function Page() {
     redirect("/login");
   }
 
-  return <DashboardClient user={session.user} />;
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const isMock =
+    !dbUrl ||
+    dbUrl === "****" ||
+    dbUrl.includes("placeholder") ||
+    dbUrl.includes("your_postgres");
+
+  return <DashboardClient user={session.user} isMock={isMock} />;
 }

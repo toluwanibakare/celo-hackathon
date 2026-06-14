@@ -31,7 +31,7 @@ interface User {
   walletAddress: string | null;
 }
 
-export function DashboardClient({ user }: { user: User }) {
+export function DashboardClient({ user, isMock = false }: { user: User; isMock?: boolean }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -347,7 +347,14 @@ export function DashboardClient({ user }: { user: User }) {
             <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">
               Paycon
             </h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wider border ${
+                isMock ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              }`} title={isMock ? "Database URL is not set. Running in local JSON mock mode." : "Connected to Supabase live instance."}>
+                {isMock ? "Mock DB Mode" : "Supabase Active"}
+              </span>
+            </div>
           </div>
         </div>
 
