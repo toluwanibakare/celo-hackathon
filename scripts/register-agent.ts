@@ -42,7 +42,7 @@ async function main() {
     const client = createWalletClient({
       account,
       chain: celoSepolia,
-      transport: http("https://forno-sepolia.celo-testnet.org"),
+      transport: http("https://forno.celo-sepolia.celo-testnet.org"),
     }).extend(publicActions);
 
     console.log(`Registering Paycon agent with owner address: ${account.address}...`);

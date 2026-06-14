@@ -13,7 +13,7 @@ const erc20Abi = parseAbi([
 
 const publicClient = createPublicClient({
   chain: celoSepolia,
-  transport: http("https://forno-sepolia.celo-testnet.org"), // Celo Sepolia RPC
+  transport: http("https://forno.celo-sepolia.celo-testnet.org"), // Celo Sepolia RPC
 });
 
 /**
