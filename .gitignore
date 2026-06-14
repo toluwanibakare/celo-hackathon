@@ -1,27 +1,40 @@
+# AI Skills & Agents
+.agents/
+skills-lock.json
+
+# Build & Output
+.next/
+build/
+dist/
+out/
+
 # Dependencies
-node_modules
-.pnpm-store
+.pnpm-store/
+.yarn/
+node_modules/
 
-# Build outputs
-.next
-dist
-out
-
-# Environment variables
+# Environment & Secrets
+*.pem
 .env
 .env*.local
 
-# Debug logs
+# IDE & Editors
+*.swo
+*.swp
+.idea/
+.vscode/
+
+# Local Database
+db.json
+db.json-journal
+
+# Logs & Debug
+*.log
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local development
+# System Files
 .DS_Store
-*.pem
-
-# IDE
-.idea
-.vscode
-*.swp
-*.swo
+Thumbs.db
