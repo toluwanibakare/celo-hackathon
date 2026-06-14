@@ -7,9 +7,8 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://chat.vercel.ai"),
-  title: "Celo AI Agent Chat",
-  description: "Celo AI Agent Chat interface created using Celo Composer.",
+  title: "Paycon - Fintech Stablecoin Savings",
+  description: "AI-driven stablecoin savings and automated bill manager built on Celo.",
 };
 
 export const viewport = {

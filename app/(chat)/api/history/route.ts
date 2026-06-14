@@ -3,7 +3,6 @@ import {
   getChatsByWalletAddress,
   getOrCreatePublicUser,
   PUBLIC_USER_ID,
-  getOrCreateUserByWalletAddress,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
 import type { NextRequest } from "next/server";
@@ -45,7 +44,7 @@ export async function GET(request: NextRequest) {
   }
 
   // If wallet provided, fetch by wallet (case-insensitive). Else use public user id.
-  let chats;
+  let chats: any;
   if (walletAddress) {
     chats = await getChatsByWalletAddress({
       walletAddress,

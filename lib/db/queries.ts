@@ -8,18 +8,14 @@ import {
   eq,
   gt,
   gte,
-  inArray,
   lt,
   type SQL,
   sql,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-
-import type { ArtifactKind } from "@/components/artifact";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { ChatSDKError } from "../errors";
-import { generateUUID } from "../utils";
 import {
   chat,
   type Chat,
@@ -27,7 +23,6 @@ import {
   document,
   message,
   stream,
-  type Suggestion,
   suggestion,
   user,
   type User,
@@ -40,7 +35,6 @@ import {
   otpVerification,
   type OtpVerification,
 } from "./schema";
-import { generateHashedPassword } from "./utils";
 import { mockDb } from "./mockDb";
 
 export const PUBLIC_USER_ID = "11111111-1111-1111-1111-111111111111";
@@ -57,7 +51,7 @@ let client: any = null;
 
 if (!isMockMode) {
   try {
-    client = postgres(process.env.POSTGRES_URL!);
+    client = postgres(process.env.POSTGRES_URL as string);
     db = drizzle(client);
   } catch (error) {
     console.warn("Postgres connection failed, falling back to mock mode:", error);

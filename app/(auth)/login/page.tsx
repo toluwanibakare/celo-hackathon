@@ -9,7 +9,6 @@ import { AuthForm } from '@/components/auth-form';
 import { SubmitButton } from '@/components/submit-button';
 
 import { login, type LoginActionState } from '../actions';
-// Auth disabled
 
 export default function Page() {
   const router = useRouter();
@@ -50,21 +49,36 @@ export default function Page() {
   };
 
   return (
-    <div className="flex h-dvh w-screen items-start pt-12 md:pt-0 md:items-center justify-center bg-background">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl flex flex-col gap-12">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="text-xl font-semibold dark:text-zinc-50">Sign In</h3>
-          <p className="text-sm text-gray-500 dark:text-zinc-400">
-            Use your email and password to sign in
-          </p>
+    <div className="flex h-dvh w-screen items-center justify-center bg-slate-950 text-slate-100 p-4 relative overflow-hidden">
+      {/* Premium Fintech Glow Background */}
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
+      
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 border-t-4 border-t-yellow-500 rounded-3xl p-8 shadow-2xl relative overflow-hidden z-10">
+        {/* Brand logo & header */}
+        <div className="flex flex-col items-center gap-3 text-center mb-8">
+          <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex items-center justify-center p-1.5 shadow-yellow-500/10">
+            <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">
+              Welcome back to Paycon
+            </h2>
+            <p className="text-xs text-slate-400 mt-1 font-medium">
+              Sign in to manage your savings goals and bills
+            </p>
+          </div>
         </div>
+
         <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
-          <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
+          <div className="pt-2">
+            <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+          </div>
+          <p className="text-center text-xs text-slate-400 mt-6 font-medium">
             {"Don't have an account? "}
             <Link
               href="/register"
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+              className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline transition"
             >
               Sign up
             </Link>

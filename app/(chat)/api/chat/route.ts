@@ -6,8 +6,6 @@ import {
   stepCountIs,
   streamText,
 } from "ai";
-// Auth removed: run in public mode
-import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { systemPrompt } from "@/lib/ai/prompts";
 import { myProvider, isModelAvailable, isReasoningModel, DEFAULT_ALIAS_CHAT_MODEL_ID } from "@/lib/ai/providers";
@@ -28,7 +26,6 @@ import {
   saveMessages,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
-import type { ChatMessage } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 // geolocation removed for web3-focused app
 import { after } from "next/server";

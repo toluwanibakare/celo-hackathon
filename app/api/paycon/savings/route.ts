@@ -76,7 +76,7 @@ export async function PATCH(request: Request) {
     }
 
     const cleanAmount = Number(amount);
-    if (isNaN(cleanAmount) || cleanAmount <= 0) {
+    if (Number.isNaN(cleanAmount) || cleanAmount <= 0) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 

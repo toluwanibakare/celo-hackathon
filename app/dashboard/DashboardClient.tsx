@@ -2,25 +2,20 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useChat } from "@ai-sdk/react";
 import {
   Wallet,
-  DollarSign,
   TrendingUp,
   Calendar,
   ArrowUpRight,
   ArrowDownLeft,
   Coins,
-  MessageSquare,
   Plus,
   Trash2,
   CheckCircle2,
   Clock,
-  Sparkles,
   LogOut,
   Copy,
   Check,
-  Send,
   X,
   CreditCard,
   AlertCircle
@@ -64,9 +59,7 @@ export function DashboardClient({ user }: { user: User }) {
 
   const [contributeGoalId, setContributeGoalId] = useState<string | null>(null);
   const [contributeAmount, setContributeAmount] = useState("");
-
-  // Chat interface toggle
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Fetch dashboard data
   const loadData = useCallback(async (silent = false) => {
@@ -111,26 +104,6 @@ export function DashboardClient({ user }: { user: User }) {
     loadData();
   }, [loadData]);
 
-  // AI Chat Setup
-  const { messages, input, handleInputChange, handleSubmit, isLoading: isChatLoading, setMessages } = useChat({
-    api: "/api/paycon/chat",
-    id: `paycon-coach-${user.id}`,
-    body: {
-      id: `paycon-coach-${user.id}`,
-    },
-    initialMessages: [
-      {
-        id: "welcome",
-        role: "assistant",
-        content: `Hi! I'm your Paycon AI Financial Coach. 🤖💰\n\nI can help you budget, check your balances, auto-pay bills, and manage your savings goals on the Celo network. Try asking me:\n- *"Can I afford to spend $25 today?"*\n- *"Pay my electricity bill"* or *"Set a savings goal of $150"*`,
-      },
-    ],
-    onFinish: () => {
-      // Reload dashboard data in case AI triggered tools
-      loadData(true);
-    },
-  });
-
   const copyAddress = () => {
     if (user.walletAddress) {
       navigator.clipboard.writeText(user.walletAddress);
@@ -164,7 +137,7 @@ export function DashboardClient({ user }: { user: User }) {
   // Simulated Deposit Action
   const handleDepositSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!depositAmount || isNaN(Number(depositAmount)) || Number(depositAmount) <= 0) {
+    if (!depositAmount || Number.isNaN(Number(depositAmount)) || Number(depositAmount) <= 0) {
       toast.error("Please enter a valid deposit amount");
       return;
     }
@@ -234,7 +207,7 @@ export function DashboardClient({ user }: { user: User }) {
   // Contribute to Goal
   const handleContributeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contributeGoalId || !contributeAmount || isNaN(Number(contributeAmount)) || Number(contributeAmount) <= 0) {
+    if (!contributeGoalId || !contributeAmount || Number.isNaN(Number(contributeAmount)) || Number(contributeAmount) <= 0) {
       toast.error("Please enter a valid savings contribution");
       return;
     }
@@ -372,74 +345,67 @@ export function DashboardClient({ user }: { user: User }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* HEADER NAVBAR */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40 px-4 md:px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-slate-900 bg-slate-900 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-500 text-slate-950 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
-            <Coins className="h-6 w-6" />
+          {/* Custom logo badge */}
+          <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex-shrink-0 flex items-center justify-center p-0.5 shadow-yellow-500/10">
+            <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">
+            <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">
               Paycon
             </h1>
-            <p className="text-xs text-slate-400 hidden sm:block">AI-Powered Stablecoin Manager</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="hidden lg:flex flex-col text-right text-xs">
-            <span className="text-slate-300 font-medium">{user.email}</span>
-            {user.phoneNumber && <span className="text-slate-400">{user.phoneNumber}</span>}
+            <span className="text-slate-300 font-bold">{user.email}</span>
+            {user.phoneNumber && <span className="text-slate-400 font-mono text-[10px]">{user.phoneNumber}</span>}
           </div>
           <button
-            onClick={() => setIsChatOpen(!isChatOpen)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition ${
-              isChatOpen
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-            }`}
+            type="button"
+            onClick={() => setShowLogoutModal(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition"
           >
-            <MessageSquare className="h-4 w-4" />
-            <span className="hidden md:inline">AI Coach</span>
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-red-950/40 border border-red-900/30 text-red-400 hover:bg-red-900/40 transition"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Logout</span>
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Logout</span>
           </button>
         </div>
       </header>
 
       {/* DASHBOARD BODY CONTAINER */}
       <main className="flex-1 flex overflow-hidden relative">
-        {/* MAIN WIDGETS SECTION */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
           {isLoading && (
-            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-3">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-emerald-400 border-r-2 border-transparent"></div>
-              <p className="text-slate-400 text-sm">Syncing with Celo network...</p>
+            <div className="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-emerald-400 border-r-2 border-transparent" />
+              <p className="text-slate-400 text-sm font-semibold">Syncing with Supabase & Celo...</p>
             </div>
           )}
 
           {/* TOP CARDS ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* WALLET ADDRESS & NETWORKS */}
-            <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-700"></div>
+            {/* WALLET ADDRESS & NETWORKS - Blue / Yellow custom borders */}
+            <div className="lg:col-span-2 bg-slate-900 border border-slate-800 border-t-4 border-t-yellow-500 border-l-4 border-l-blue-600 p-6 rounded-2xl flex flex-col justify-between shadow-xl relative overflow-hidden group">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-emerald-400" />
-                    <span className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Celo Wallet</span>
+                    {/* Styled non-generic icon badge: Blue base */}
+                    <div className="bg-blue-600/10 p-2 rounded-lg border border-blue-500/20 text-blue-400">
+                      <Wallet className="h-5 w-5" />
+                    </div>
+                    <span className="text-sm font-extrabold text-slate-200 uppercase tracking-wider">Celo Wallet</span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    Celo Sepolia Testnet
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+                    Celo Sepolia
                   </span>
                 </div>
-                <div className="bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between gap-4 font-mono text-sm max-w-full overflow-hidden">
+                <div className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between gap-4 font-mono text-sm max-w-full overflow-hidden">
                   <span className="truncate text-slate-300 select-all">{user.walletAddress || "0x..."}</span>
                   <button
+                    type="button"
                     onClick={copyAddress}
                     className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition shrink-0"
                     title="Copy Address"
@@ -449,16 +415,16 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-800/60">
+              <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-800">
                 <div>
-                  <span className="text-xs text-slate-400">cUSD Balance</span>
-                  <p className="text-2xl md:text-3xl font-extrabold text-slate-100 mt-1">
+                  <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">cUSD Balance</span>
+                  <p className="text-2xl md:text-3xl font-black text-emerald-400 mt-1">
                     ${balances.cUSD.toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-400">USDC Balance</span>
-                  <p className="text-2xl md:text-3xl font-extrabold text-slate-100 mt-1">
+                  <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">USDC Balance</span>
+                  <p className="text-2xl md:text-3xl font-black text-blue-400 mt-1">
                     ${balances.usdc.toFixed(2)}
                   </p>
                 </div>
@@ -466,50 +432,51 @@ export function DashboardClient({ user }: { user: User }) {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
+                  type="button"
                   onClick={() => setShowDepositModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl text-sm transition shadow-lg shadow-emerald-500/20"
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-sm transition shadow-lg shadow-emerald-500/25"
                 >
-                  <ArrowUpRight className="h-4 w-4" /> Simulate Deposit
+                  <ArrowUpRight className="h-4 w-4 stroke-[2.5]" /> Simulate Deposit
                 </button>
                 <a
                   href={`https://explorer.celo.org/sepolia/address/${user.walletAddress}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm transition border border-slate-700/50"
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-850 hover:bg-slate-800 text-slate-200 font-bold rounded-xl text-sm transition border border-slate-700"
                 >
                   Block Explorer
                 </a>
               </div>
             </div>
 
-            {/* QUICK HEALTH CARD */}
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between shadow-xl">
+            {/* QUICK HEALTH CARD - Green Theme */}
+            <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-emerald-500 border-r-4 border-r-emerald-600 p-6 rounded-2xl flex flex-col justify-between shadow-xl">
               <div>
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Financial Status</h3>
+                <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-4">Financial Health</h3>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Total Liquid Savings:</span>
-                    <span className="font-bold text-slate-200">${balances.cUSD.toFixed(2)} cUSD</span>
+                  <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                    <span className="text-slate-400">Total Capital:</span>
+                    <span className="font-extrabold text-slate-200">${balances.cUSD.toFixed(2)} cUSD</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Active Goals Goal Value:</span>
-                    <span className="font-bold text-slate-200">
+                  <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                    <span className="text-slate-400">Savings Target:</span>
+                    <span className="font-extrabold text-slate-200">
                       ${goals.reduce((acc, g) => acc + Number(g.targetAmount), 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Unpaid Bills Count:</span>
-                    <span className="font-bold text-slate-200">
-                      {bills.filter((b) => !b.isPaid).length} unpaid (${bills.filter((b) => !b.isPaid).reduce((acc, b) => acc + Number(b.amount), 0).toFixed(2)})
+                    <span className="text-slate-400">Unpaid Bills:</span>
+                    <span className="font-extrabold text-yellow-400">
+                      {bills.filter((b) => !b.isPaid).length} bills (${bills.filter((b) => !b.isPaid).reduce((acc, b) => acc + Number(b.amount), 0).toFixed(2)})
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl flex items-start gap-2 text-xs text-slate-400">
+              <div className="mt-6 p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-start gap-2.5 text-xs text-slate-400">
                 <AlertCircle className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Tip:</strong> Keep a buffer of at least $20 cUSD to cover your upcoming bills automatic payments.
+                  <strong>WhatsApp updates:</strong> Your savings assistant is active on WhatsApp! Ask your coach directly to contribute or view budgets.
                 </span>
               </div>
             </div>
@@ -517,18 +484,21 @@ export function DashboardClient({ user }: { user: User }) {
 
           {/* GRID OF GOALS AND BILLS */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            {/* SAVINGS GOALS */}
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-6">
+            {/* SAVINGS GOALS - Green theme top border */}
+            <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-emerald-500 rounded-2xl p-6 shadow-xl flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-emerald-400" />
-                  <h2 className="text-lg font-bold text-slate-100">Savings Goals</h2>
+                  <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-emerald-400">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight">Savings Goals</h2>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowGoalModal(true)}
-                  className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition font-semibold"
+                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-600 transition font-extrabold shadow-md shadow-emerald-500/10"
                 >
-                  <Plus className="h-3.5 w-3.5" /> Create Goal
+                  <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> Create Goal
                 </button>
               </div>
 
@@ -548,24 +518,25 @@ export function DashboardClient({ user }: { user: User }) {
                     return (
                       <div
                         key={goal.id}
-                        className="bg-slate-950/40 border border-slate-800/80 p-4 rounded-xl flex flex-col gap-3 relative group"
+                        className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col gap-3 relative group"
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="font-bold text-slate-200">{goal.title}</h4>
-                            <span className="text-xs text-slate-400">
+                            <h4 className="font-extrabold text-slate-200">{goal.title}</h4>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                               Target Date: {new Date(goal.targetDate).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              isCompleted ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25" : "bg-slate-800 text-slate-400"
+                            <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
+                              isCompleted ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-blue-600/10 text-blue-400 border border-blue-500/20"
                             }`}>
                               {progress}%
                             </span>
                             <button
+                              type="button"
                               onClick={() => handleDeleteGoal(goal.id, goal.title)}
-                              className="p-1 hover:bg-slate-800 text-slate-500 hover:text-red-400 rounded-md transition"
+                              className="p-1.5 hover:bg-slate-900 text-slate-500 hover:text-red-400 rounded-lg transition"
                               title="Delete Goal"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -574,23 +545,24 @@ export function DashboardClient({ user }: { user: User }) {
                         </div>
 
                         {/* Progress Bar */}
-                        <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                        <div className="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800">
                           <div
-                            className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                            className="bg-gradient-to-r from-emerald-500 to-blue-500 h-full rounded-full transition-all duration-500"
                             style={{ width: `${progress}%` }}
-                          ></div>
+                          />
                         </div>
 
                         <div className="flex justify-between items-center text-xs text-slate-400">
                           <span>
-                            Saved: <strong>${current.toFixed(2)}</strong> / ${target.toFixed(2)} cUSD
+                            Saved: <strong className="text-slate-200 font-bold">${current.toFixed(2)}</strong> / ${target.toFixed(2)} cUSD
                           </span>
                           {!isCompleted && (
                             <button
+                              type="button"
                               onClick={() => setContributeGoalId(goal.id)}
                               className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 hover:underline"
                             >
-                              <Plus className="h-3 w-3" /> Save Funds
+                              <Plus className="h-3 w-3 stroke-[2.5]" /> Save Funds
                             </button>
                           )}
                         </div>
@@ -610,12 +582,12 @@ export function DashboardClient({ user }: { user: User }) {
                                 placeholder="Amount in cUSD"
                                 value={contributeAmount}
                                 onChange={(e) => setContributeAmount(e.target.value)}
-                                className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-emerald-500 text-slate-100 flex-1"
+                                className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 text-slate-100 flex-1"
                                 required
                               />
                               <button
                                 type="submit"
-                                className="bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs hover:bg-emerald-600 transition"
+                                className="bg-emerald-500 text-slate-950 font-extrabold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-600 transition"
                               >
                                 Save
                               </button>
@@ -639,18 +611,21 @@ export function DashboardClient({ user }: { user: User }) {
               )}
             </div>
 
-            {/* BILL PLANNER */}
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-6">
+            {/* BILL PLANNER - Yellow/Gold theme top border */}
+            <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-yellow-500 rounded-2xl p-6 shadow-xl flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-emerald-400" />
-                  <h2 className="text-lg font-bold text-slate-100">Bill Planner</h2>
+                  <div className="bg-yellow-550/10 p-2 rounded-lg border border-yellow-500/20 text-yellow-500">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight">Bill Planner</h2>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowBillModal(true)}
-                  className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition font-semibold"
+                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-xl bg-yellow-500 text-slate-950 hover:bg-yellow-600 transition font-extrabold shadow-md shadow-yellow-500/10"
                 >
-                  <Plus className="h-3.5 w-3.5" /> Add Bill
+                  <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> Add Bill
                 </button>
               </div>
 
@@ -668,45 +643,47 @@ export function DashboardClient({ user }: { user: User }) {
                     return (
                       <div
                         key={bill.id}
-                        className="bg-slate-950/40 border border-slate-800/80 p-4 rounded-xl flex items-center justify-between gap-4"
+                        className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4"
                       >
                         <div className="flex items-center gap-3">
                           <div className={`p-2.5 rounded-xl border ${
-                            isPaid ? "bg-emerald-950/20 border-emerald-800/30 text-emerald-400" : "bg-slate-900 border-slate-800 text-slate-400"
+                            isPaid ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" : "bg-slate-900 border-slate-800 text-slate-400"
                           }`}>
                             <CreditCard className="h-4 w-4" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-slate-200">{bill.title}</h4>
-                            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                            <h4 className="font-extrabold text-slate-200">{bill.title}</h4>
+                            <div className="flex items-center gap-2 mt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                               <span>Due: {dueDateStr}</span>
                               <span>•</span>
-                              <span className="capitalize">{bill.frequency}</span>
+                              <span className="text-blue-400">{bill.frequency}</span>
                             </div>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <span className="font-bold text-slate-200 block">${Number(bill.amount).toFixed(2)} cUSD</span>
+                            <span className="font-extrabold text-slate-200 block">${Number(bill.amount).toFixed(2)} cUSD</span>
                           </div>
 
                           <div className="flex items-center gap-1.5">
                             {isPaid ? (
-                              <span className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
                                 <CheckCircle2 className="h-3 w-3" /> Paid
                               </span>
                             ) : (
                               <button
+                                type="button"
                                 onClick={() => handlePayBill(bill.id, bill.title, bill.amount)}
-                                className="px-2.5 py-1 text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-lg transition"
+                                className="px-3 py-1.5 text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-xl transition"
                               >
                                 Pay
                               </button>
                             )}
                             <button
+                              type="button"
                               onClick={() => handleDeleteBill(bill.id, bill.title)}
-                              className="p-1 hover:bg-slate-800 text-slate-500 hover:text-red-400 rounded-md transition"
+                              className="p-1.5 hover:bg-slate-900 text-slate-500 hover:text-red-400 rounded-lg transition"
                               title="Delete Bill"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -721,10 +698,13 @@ export function DashboardClient({ user }: { user: User }) {
             </div>
           </div>
 
-          {/* RECENT TRANSACTIONS */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-emerald-400" /> Recent Transactions
+          {/* RECENT TRANSACTIONS - Blue theme top border */}
+          <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-blue-500 rounded-2xl p-6 shadow-xl">
+            <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight mb-6 flex items-center gap-2">
+              <div className="bg-blue-600/10 p-2 rounded-lg border border-blue-500/20 text-blue-400">
+                <Clock className="h-5 w-5" />
+              </div>
+              Recent Transactions
             </h2>
 
             {transactions.length === 0 ? (
@@ -735,12 +715,12 @@ export function DashboardClient({ user }: { user: User }) {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left text-sm">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400">
-                      <th className="pb-3 font-semibold">Activity</th>
-                      <th className="pb-3 font-semibold hidden md:table-cell">Type</th>
-                      <th className="pb-3 font-semibold">Token</th>
-                      <th className="pb-3 font-semibold text-right">Amount</th>
-                      <th className="pb-3 font-semibold text-right">Status</th>
+                    <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="pb-3">Activity</th>
+                      <th className="pb-3 hidden md:table-cell">Type</th>
+                      <th className="pb-3">Token</th>
+                      <th className="pb-3 text-right">Amount</th>
+                      <th className="pb-3 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/50">
@@ -750,40 +730,40 @@ export function DashboardClient({ user }: { user: User }) {
                       const isSimulated = !tx.txHash;
 
                       return (
-                        <tr key={tx.id} className="hover:bg-slate-800/10 transition">
+                        <tr key={tx.id} className="hover:bg-slate-900/40 transition">
                           <td className="py-3 flex items-center gap-3">
                             <div className={`p-2 rounded-lg ${
-                              isIncoming ? "bg-emerald-950/20 text-emerald-400" : "bg-blue-950/20 text-blue-400"
+                              isIncoming ? "bg-emerald-950 border border-emerald-500/20 text-emerald-400" : "bg-blue-950 border border-blue-500/20 text-blue-400"
                             }`}>
                               {isIncoming ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                             </div>
                             <div>
-                              <span className="font-semibold text-slate-200 block">
+                              <span className="font-extrabold text-slate-200 block">
                                 {tx.description || (isIncoming ? "Fund Deposit" : "Outbound Payment")}
                               </span>
-                              <span className="text-xs text-slate-400 block mt-0.5">
+                              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
                                 {new Date(tx.createdAt).toLocaleString()}
                               </span>
                             </div>
                           </td>
-                          <td className="py-3 capitalize hidden md:table-cell text-slate-300">
+                          <td className="py-3 capitalize hidden md:table-cell text-slate-300 font-medium">
                             {tx.type.replace("_", " ")}
                           </td>
-                          <td className="py-3 text-slate-300">
+                          <td className="py-3 text-slate-300 font-mono">
                             {tx.token}
                           </td>
-                          <td className={`py-3 text-right font-bold ${
+                          <td className={`py-3 text-right font-black ${
                             isIncoming ? "text-emerald-400" : "text-slate-300"
                           }`}>
                             {isIncoming ? "+" : "-"}${amountStr}
                           </td>
                           <td className="py-3 text-right">
-                            <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                               tx.status === "completed"
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-yellow-500/10 text-yellow-400"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
                             }`}>
-                              {tx.status} {isSimulated && <span className="text-[10px] text-slate-400 opacity-80">(Sim)</span>}
+                              {tx.status} {isSimulated && <span className="text-[9px] text-slate-500 font-medium lowercase opacity-80">(sim)</span>}
                             </span>
                           </td>
                         </tr>
@@ -795,91 +775,6 @@ export function DashboardClient({ user }: { user: User }) {
             )}
           </div>
         </div>
-
-        {/* AI FINANCIAL COACH CHAT PANEL */}
-        <AnimatePresence>
-          {isChatOpen && (
-            <motion.div
-              initial={{ x: 300, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 300, opacity: 0 }}
-              transition={{ type: "spring", damping: 20, stiffness: 100 }}
-              className="w-full lg:w-96 border-l border-slate-800 bg-slate-900/95 backdrop-blur-md flex flex-col h-[calc(100vh-73px)] shrink-0 absolute right-0 lg:relative z-30"
-            >
-              <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
-                <div className="flex items-center gap-2">
-                  <div className="bg-emerald-500/10 p-1.5 rounded-lg border border-emerald-500/20 text-emerald-400">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-200">AI Financial Coach</h3>
-                    <span className="text-[10px] text-emerald-400 flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse"></span> Active
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsChatOpen(false)}
-                  className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-md transition"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* MESSAGES VIEW */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-sm">
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-2.5 whitespace-pre-wrap ${
-                        m.role === "user"
-                          ? "bg-emerald-500 text-slate-950 font-medium"
-                          : "bg-slate-800 border border-slate-800 text-slate-200"
-                      }`}
-                    >
-                      {m.content}
-                    </div>
-                    <span className="text-[9px] text-slate-500 mt-1 px-1">
-                      {m.role === "user" ? "You" : "Coach"}
-                    </span>
-                  </div>
-                ))}
-
-                {isChatLoading && (
-                  <div className="flex flex-col items-start">
-                    <div className="bg-slate-800 border border-slate-800 text-slate-300 rounded-2xl px-4 py-2.5 flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-bounce"></span>
-                      <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                      <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* CHAT INPUT FORM */}
-              <form onSubmit={handleSubmit} className="p-4 border-t border-slate-800 bg-slate-950/60 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Ask Coach about your budget..."
-                  value={input}
-                  onChange={handleInputChange}
-                  className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100 flex-1"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={isChatLoading || !input.trim()}
-                  className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold p-2.5 rounded-xl transition flex items-center justify-center shrink-0"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </main>
 
       {/* ======================================================== */}
@@ -889,28 +784,29 @@ export function DashboardClient({ user }: { user: User }) {
       {/* DEPOSIT MODAL */}
       <AnimatePresence>
         {showDepositModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/40">
-                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
                   <ArrowDownLeft className="h-5 w-5 text-emerald-400" /> Simulate Deposit
                 </h3>
-                <button onClick={() => setShowDepositModal(false)} className="text-slate-400 hover:text-slate-200">
+                <button type="button" onClick={() => setShowDepositModal(false)} className="text-slate-400 hover:text-slate-200">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
               <form onSubmit={handleDepositSubmit} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="depositToken" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Token type
                   </label>
                   <select
+                    id="depositToken"
                     value={depositToken}
                     onChange={(e) => setDepositToken(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
@@ -921,10 +817,11 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="depositAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Deposit Amount
                   </label>
                   <input
+                    id="depositAmount"
                     type="number"
                     placeholder="Enter amount (e.g. 50)"
                     value={depositAmount}
@@ -937,7 +834,7 @@ export function DashboardClient({ user }: { user: User }) {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/20"
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/25"
                   >
                     Simulate Deposit
                   </button>
@@ -951,28 +848,29 @@ export function DashboardClient({ user }: { user: User }) {
       {/* CREATE SAVINGS GOAL MODAL */}
       <AnimatePresence>
         {showGoalModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/40">
-                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-emerald-400" /> Create Savings Goal
                 </h3>
-                <button onClick={() => setShowGoalModal(false)} className="text-slate-400 hover:text-slate-200">
+                <button type="button" onClick={() => setShowGoalModal(false)} className="text-slate-400 hover:text-slate-200">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
               <form onSubmit={handleCreateGoalSubmit} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="goalTitle" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Goal Name
                   </label>
                   <input
+                    id="goalTitle"
                     type="text"
                     placeholder="e.g. Rainy Day Fund, Holiday Trip"
                     value={goalTitle}
@@ -983,10 +881,11 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="goalTargetAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Target Amount (cUSD)
                   </label>
                   <input
+                    id="goalTargetAmount"
                     type="number"
                     placeholder="Target in stablecoins"
                     value={goalTargetAmount}
@@ -997,10 +896,11 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="goalTargetDate" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Target Date
                   </label>
                   <input
+                    id="goalTargetDate"
                     type="date"
                     value={goalTargetDate}
                     onChange={(e) => setGoalTargetDate(e.target.value)}
@@ -1012,7 +912,7 @@ export function DashboardClient({ user }: { user: User }) {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/20"
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/25"
                   >
                     Create Savings Goal
                   </button>
@@ -1026,28 +926,29 @@ export function DashboardClient({ user }: { user: User }) {
       {/* CREATE BILL MODAL */}
       <AnimatePresence>
         {showBillModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/40">
-                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-emerald-400" /> Add Upcoming Bill
                 </h3>
-                <button onClick={() => setShowBillModal(false)} className="text-slate-400 hover:text-slate-200">
+                <button type="button" onClick={() => setShowBillModal(false)} className="text-slate-400 hover:text-slate-200">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
               <form onSubmit={handleCreateBillSubmit} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="billTitle" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Bill Title
                   </label>
                   <input
+                    id="billTitle"
                     type="text"
                     placeholder="e.g. Netflix, Electricity, Rent"
                     value={billTitle}
@@ -1058,10 +959,11 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="billAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Bill Amount (cUSD)
                   </label>
                   <input
+                    id="billAmount"
                     type="number"
                     placeholder="Amount to pay"
                     value={billAmount}
@@ -1072,10 +974,11 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="billDueDate" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Due Date
                   </label>
                   <input
+                    id="billDueDate"
                     type="date"
                     value={billDueDate}
                     onChange={(e) => setBillDueDate(e.target.value)}
@@ -1085,10 +988,11 @@ export function DashboardClient({ user }: { user: User }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="billFrequency" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Frequency
                   </label>
                   <select
+                    id="billFrequency"
                     value={billFrequency}
                     onChange={(e) => setBillFrequency(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
@@ -1103,12 +1007,61 @@ export function DashboardClient({ user }: { user: User }) {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/20"
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/25"
                   >
                     Add Bill to Planner
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* LOGOUT CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
+                  <LogOut className="h-5 w-5 text-yellow-500" /> Confirm Logout
+                </h3>
+                <button type="button" onClick={() => setShowLogoutModal(false)} className="text-slate-400 hover:text-slate-200">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <p className="text-sm text-slate-300">
+                  Are you sure you want to log out of your Paycon account? Any unsaved action simulation will be discarded.
+                </p>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoutModal(false)}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl transition text-sm border border-slate-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLogoutModal(false);
+                      handleSignOut();
+                    }}
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-yellow-500/25"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}

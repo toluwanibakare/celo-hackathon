@@ -1,13 +1,30 @@
-import Form from 'next/form';
+"use client";
 
+import Form from 'next/form';
+import { useState } from 'react';
+import { Eye, EyeOff, Check, Globe } from 'lucide-react';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+
+const COUNTRIES = [
+  { code: '+234', name: 'Nigeria', flag: '🇳🇬' },
+  { code: '+254', name: 'Kenya', flag: '🇰🇪' },
+  { code: '+233', name: 'Ghana', flag: '🇬🇭' },
+  { code: '+27', name: 'South Africa', flag: '🇿🇦' },
+  { code: '+1', name: 'USA', flag: '🇺🇸' },
+  { code: '+44', name: 'UK', flag: '🇬🇧' },
+  { code: '+49', name: 'Germany', flag: '🇩🇪' },
+  { code: '+91', name: 'India', flag: '🇮🇳' },
+  { code: '+55', name: 'Brazil', flag: '🇧🇷' },
+  { code: '+1', name: 'Canada', flag: '🇨🇦' },
+];
 
 export function AuthForm({
   action,
   children,
   defaultEmail = '',
   showPhoneNumber = false,
+  showStrengthRules = false,
 }: {
   action: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
@@ -15,23 +32,34 @@ export function AuthForm({
   children: React.ReactNode;
   defaultEmail?: string;
   showPhoneNumber?: boolean;
+  showStrengthRules?: boolean;
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [countryCode, setCountryCode] = useState('+234');
+  const [phoneBody, setPhoneBody] = useState('');
+
+  // Password strength checks
+  const hasMinLength = password.length >= 6;
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
   return (
-    <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
+    <Form action={action} className="flex flex-col gap-5 px-4 sm:px-16">
+      {/* EMAIL ADDRESS */}
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="email"
-          className="text-zinc-600 font-normal dark:text-zinc-400"
+          className="text-slate-400 font-semibold text-xs uppercase tracking-wider"
         >
           Email Address
         </Label>
-
         <Input
           id="email"
           name="email"
-          className="bg-muted text-md md:text-sm"
+          className="bg-slate-900 border-slate-800 text-slate-100 text-sm h-11 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl"
           type="email"
-          placeholder="user@acme.com"
+          placeholder="your@email.com"
           autoComplete="email"
           required
           autoFocus
@@ -39,42 +67,118 @@ export function AuthForm({
         />
       </div>
 
+      {/* PHONE NUMBER FIELD WITH COUNTRY CODE */}
       {showPhoneNumber && (
         <div className="flex flex-col gap-2">
           <Label
-            htmlFor="phoneNumber"
-            className="text-zinc-600 font-normal dark:text-zinc-400"
+            htmlFor="phoneInput"
+            className="text-slate-400 font-semibold text-xs uppercase tracking-wider"
           >
-            Phone Number (for WhatsApp integration)
+            WhatsApp Phone Number
           </Label>
-
-          <Input
-            id="phoneNumber"
+          <div className="flex gap-2">
+            <div className="relative shrink-0">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="appearance-none bg-slate-900 border border-slate-800 text-slate-100 text-sm h-11 px-3 pr-8 rounded-xl focus:outline-none focus:border-emerald-500 cursor-pointer"
+              >
+                {COUNTRIES.map((c) => (
+                  <option key={`${c.code}-${c.name}`} value={c.code}>
+                    {c.flag} {c.code}
+                  </option>
+                ))}
+              </select>
+              <Globe className="absolute right-2.5 top-3.5 h-4 w-4 text-slate-500 pointer-events-none" />
+            </div>
+            <Input
+              id="phoneInput"
+              type="tel"
+              placeholder="8012345678"
+              value={phoneBody}
+              onChange={(e) => setPhoneBody(e.target.value.replace(/\D/g, ''))}
+              className="bg-slate-900 border-slate-800 text-slate-100 text-sm h-11 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl flex-1"
+              required
+            />
+          </div>
+          {/* Hidden input to combine countryCode and phoneBody for the action */}
+          <input
+            type="hidden"
             name="phoneNumber"
-            className="bg-muted text-md md:text-sm"
-            type="tel"
-            placeholder="+1234567890"
-            required
+            value={`${countryCode}${phoneBody}`}
           />
+          <p className="text-[10px] text-slate-500">
+            Enter your mobile number without the leading zero (e.g. 8012345678).
+          </p>
         </div>
       )}
 
+      {/* PASSWORD FIELD WITH VISIBILITY TOGGLE */}
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="password"
-          className="text-zinc-600 font-normal dark:text-zinc-400"
+          className="text-slate-400 font-semibold text-xs uppercase tracking-wider"
         >
           Password
         </Label>
-
-        <Input
-          id="password"
-          name="password"
-          className="bg-muted text-md md:text-sm"
-          type="password"
-          required
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            name="password"
+            className="bg-slate-900 border-slate-800 text-slate-100 text-sm h-11 pr-10 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl"
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-3 h-5 w-5 text-slate-400 hover:text-slate-200 transition"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
+
+      {/* DYNAMIC PASSWORD STRENGTH RULES */}
+      {showStrengthRules && (
+        <div className="text-xs space-y-1.5 p-3 rounded-xl bg-slate-950 border border-slate-900">
+          <p className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+            Security Requirements:
+          </p>
+          <div className="flex items-center gap-2 text-slate-400">
+            {hasMinLength ? (
+              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            ) : (
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 mx-1" />
+            )}
+            <span className={hasMinLength ? 'text-slate-300 font-medium' : ''}>
+              At least 6 characters
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-400">
+            {hasNumber ? (
+              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            ) : (
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 mx-1" />
+            )}
+            <span className={hasNumber ? 'text-slate-300 font-medium' : ''}>
+              At least 1 digit (0-9)
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-400">
+            {hasSpecial ? (
+              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            ) : (
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 mx-1" />
+            )}
+            <span className={hasSpecial ? 'text-slate-300 font-medium' : ''}>
+              At least 1 symbol (e.g. !, @, #)
+            </span>
+          </div>
+        </div>
+      )}
 
       {children}
     </Form>

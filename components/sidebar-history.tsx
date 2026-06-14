@@ -21,7 +21,7 @@ import { fetcher } from "@/lib/utils";
 import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import useSWRInfinite from "swr/infinite";
 import { LoaderIcon } from "./icons";
@@ -80,7 +80,7 @@ const groupChatsByDate = (chats: Chat[]): GroupedChats => {
 export function getChatHistoryPaginationKeyForWallet(
   walletAddress?: string
 ) {
-  return function (pageIndex: number, previousPageData: ChatHistory) {
+  return (pageIndex: number, previousPageData: ChatHistory) => {
     if (previousPageData && previousPageData.hasMore === false) {
       return null;
     }
