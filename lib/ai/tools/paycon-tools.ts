@@ -11,6 +11,7 @@ import {
   getUserById,
 } from "@/lib/db/queries";
 import { getStablecoinBalances, generateCeloWallet, executeStablecoinTransfer } from "@/lib/wallet";
+import { sendReceiptEmail } from "@/lib/email";
 
 type Session = any;
 
@@ -205,6 +206,21 @@ export const payconTools = ({ session }: PayconToolsProps) => {
           txHash: txHash,
         });
 
+        // Send transaction receipt email if user has an email address
+        if (userData.email) {
+          try {
+            await sendReceiptEmail(userData.email, {
+              type: "savings_contribution",
+              amount: String(amount),
+              token,
+              txHash,
+              description: `Saved towards "${goal.title}"`,
+            });
+          } catch (emailErr) {
+            console.error("Failed to send receipt email:", emailErr);
+          }
+        }
+
         return {
           success: true,
           message: `Successfully contributed $${amount} to "${goal.title}" on-chain!`,
@@ -275,6 +291,21 @@ export const payconTools = ({ session }: PayconToolsProps) => {
           status: "completed",
           txHash: txHash,
         });
+
+        // Send transaction receipt email if user has an email address
+        if (userData.email) {
+          try {
+            await sendReceiptEmail(userData.email, {
+              type: "bill_payment",
+              amount: targetBill.amount,
+              token,
+              txHash,
+              description: `Paid bill "${targetBill.title}"`,
+            });
+          } catch (emailErr) {
+            console.error("Failed to send receipt email:", emailErr);
+          }
+        }
 
         return {
           success: true,

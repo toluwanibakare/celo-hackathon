@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOTP, verifyOTP } from "@/lib/db/queries";
+import { sendOTPEmail } from "@/lib/email";
 
 // POST /api/paycon/otp
 export async function POST(request: Request) {
@@ -26,15 +27,16 @@ export async function POST(request: Request) {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await createOTP(email, code, purpose);
 
-      // Log the OTP for development/testing
-      console.log(`[OTP SERVICE] Generated OTP ${code} for ${email} (Purpose: ${purpose})`);
+      // Send the OTP via Gmail SMTP
+      await sendOTPEmail(email, code, purpose);
 
-      // In a real app, you would send this via email/SMS.
-      // For the demo, we return it in the response so the frontend/WhatsApp bot can access it easily.
+      // Log the OTP for development/testing
+      console.log(`[OTP SERVICE] Generated and sent OTP ${code} to ${email} (Purpose: ${purpose})`);
+
       return NextResponse.json({
         success: true,
-        message: "OTP sent successfully (Simulated)",
-        otp: code, // Return it for easy testing
+        message: "OTP sent successfully via email",
+        otp: code, // Return it for easy testing/fallback
       });
     }
   } catch (error: any) {
