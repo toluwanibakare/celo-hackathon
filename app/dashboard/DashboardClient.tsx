@@ -426,7 +426,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
             {user.phoneNumber && <span className="text-slate-500 font-mono text-[10px]">{user.phoneNumber}</span>}
           </div>
           <a
-            href={whatsappUrl}
+            href="https://wa.me/15556698050"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] md:text-xs font-bold
@@ -435,7 +435,19 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
               hover:shadow-[0_0_12px_rgba(44,168,103,0.25)] transition-all duration-200"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">AI Chat</span>
+            <span className="hidden sm:inline">AI Chat (WhatsApp)</span>
+          </a>
+          <a
+            href="https://ennyty27.app.n8n.cloud/webhook/paycon"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] md:text-xs font-bold
+              bg-yellow-500/15 border border-yellow-500/30 text-yellow-400
+              hover:bg-yellow-500/25 hover:border-yellow-500/60
+              hover:shadow-[0_0_12px_rgba(251,191,36,0.25)] transition-all duration-200"
+          >
+            <RefreshCw className="h-3.5 w-3.5 animate-spin-slow" />
+            <span className="hidden sm:inline">Talk to Agent (n8n)</span>
           </a>
           <button
             type="button"
