@@ -1,34 +1,75 @@
-# Paycon: AI Driven Stablecoin Savings and Automated Bill Manager
+# Paycon: The Intelligent Financial Companion for Stablecoins and Bills
 
-Paycon is a premium Web3 fintech application built on Celo Sepolia that combines automated, yield bearing stablecoin savings goals, scheduling and executing real world bill payments on chain, and an AI powered financial coach accessible both via a web dashboard and WhatsApp.
+Welcome to Paycon, a smart personal finance dashboard and conversational assistant built on the Celo network. Paycon helps you automate your savings goals, schedule real world bill payments, and build financial habits using digital dollars. 
 
-## What is Paycon and How It Works
+Paycon brings a premium Web3 fintech experience directly to your browser and your favorite messaging app, WhatsApp.
 
-Paycon enables users to manage their digital assets with premium UX:
-1. ATM style Celo Wallet Card: A responsive 3D flipping ATM card displaying the user's Celo Sepolia address (printed like a card number), EMV chip details, live on chain balances (USDm and USDC), and actions.
-2. Segregated Savings Goal Vaults: Every savings goal created automatically spins up its own dedicated Celo wallet serving as an on chain vault. The AI agent can contribute stablecoins from the user's main wallet directly to these vault addresses on chain.
-3. On chain Bill Payments: Schedule bills and pay them on chain using Celo's ultra low gas fees and fast block times.
-4. WhatsApp AI Financial Coach via n8n: Users can chat with their financial coach, query balances, create goals, contribute to savings, and pay bills in natural language using WhatsApp.
+---
 
-## Tech Stack
+## How Paycon Works
 
-- Frontend and Backend: Next.js 15 (App Router) with TypeScript
-- Database Layer: PostgreSQL with Drizzle ORM
-- Cloud Database: Supabase (PG Connection Pooling via AWS Pooler)
-- On chain Interactions: Viem and Thirdweb SDKs (Celo Sepolia Testnet)
-- Email Service: Nodemailer (Gmail SMTP) for OTP and transaction receipts
-- AI Orchestration and Automations: n8n workflows handling the WhatsApp message routing, user session state, tools invocation, and stablecoin transactions
-- Chat Interface: WhatsApp Business Cloud API (Meta Developer Platform)
+Paycon is built around three core pillars designed to make Web3 personal finance intuitive, visual, and automated:
 
-## Chatting with Paycon on WhatsApp (MVP Whitelisting)
+### 1. The Interactive ATM Card
+The centerpiece of your dashboard is a realistic, 3D flipping ATM card. 
+- The front of the card displays your Celo Sepolia address styled like a traditional card number, your EMV chip, and active status.
+- Tap or click the card to flip it over. The back reveals your live digital dollar balances (USDm and USDC), a quick copy button for your address, and options to fund your wallet or view the block explorer.
 
-For the MVP, we are using a sandbox test number from Meta. To interact with Paycon on WhatsApp:
+### 2. Goal Oriented Vaults
+Saving is easier when it is segregated. 
+- When you create a savings goal (like saving for a new laptop), Paycon automatically generates a unique on chain wallet specifically for that goal.
+- This vault acts as a dedicated digital piggy bank. When you contribute to a goal, stablecoins are transferred from your primary wallet to the goal vault.
 
-1. Send a message containing any text on WhatsApp to the sandbox number: +2348026322742.
-2. Meta requires you to send this initial message to whitelist your phone number for receiving inbound messages from the sandbox sender.
-3. Once whitelisted, the AI Agent will respond and guide you through tracking your savings and executing bills.
+### 3. Automated Bill Payments
+Never miss a due date.
+- Schedule your regular bills (utility, rent, internet) on the platform.
+- When it is time to pay, Paycon executes a secure on chain stablecoin transfer to the merchant using Celo's fast block times and low network fees.
 
-## Getting Started
+---
+
+## The Conversational AI Assistant
+
+You do not need to open the dashboard to manage your finances. Paycon features an AI companion that runs inside WhatsApp. 
+
+### How the AI Operates
+- Paycon uses a secure automation framework powered by n8n.
+- When you message the AI on WhatsApp, n8n processes your natural language requests.
+- The AI is equipped with tools to securely interact with the blockchain and database on your behalf. 
+- For example, you can text the AI "Move ten dollars to my Laptop savings goal" or "Do I have any bills due this week?", and it will call the appropriate on chain tools to execute the action.
+
+---
+
+## Getting Started with the WhatsApp MVP
+
+For the MVP, Paycon uses a sandbox number from Meta. To start chatting with your AI financial coach:
+
+1. Add the sandbox number to your contacts: **+2348026322742**.
+2. Send a WhatsApp message containing any text (such as "Hello") to this number.
+3. This initial message is required by Meta to whitelist your phone number so you can receive messages back from the sandbox.
+4. Try typing these commands to start your financial journey:
+   - "What is my current wallet balance?"
+   - "Create a savings goal named Summer Vacation with a target of five hundred dollars"
+   - "Contribute fifty dollars to my Summer Vacation goal"
+   - "Show my upcoming bills"
+
+---
+
+## Technology Stack
+
+Paycon leverages modern web and blockchain infrastructure to deliver a fast and secure experience:
+
+- **Web Application:** Next.js 15 App Router with TypeScript
+- **Database & Hosting:** Supabase PostgreSQL database managed with Drizzle ORM
+- **Blockchain Connectivity:** Viem and Thirdweb SDKs deployed on Celo Sepolia
+- **Security:** Node Mailer Gmail SMTP for secure OTP logins and transactional email receipts
+- **Automations:** n8n workflow management for routing WhatsApp messages and executing blockchain functions
+- **Messaging Interface:** Meta WhatsApp Business Cloud API
+
+---
+
+## Setup and Installation
+
+Follow these steps to run the Paycon dashboard locally:
 
 ### 1. Install Dependencies
 ```bash
@@ -36,17 +77,17 @@ pnpm install
 ```
 
 ### 2. Set Up Environment Variables
-Create a .env.local or .env file in the root directory:
+Create a `.env.local` or `.env` file in the root directory:
 ```env
-# Database Credentials
+# Database Connections
 DATABASE_URL="postgresql://postgres:[PASSWORD]@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require&prepare=false"
 POSTGRES_URL="postgresql://postgres:[PASSWORD]@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require&prepare=false"
 
-# AI Provider Keys
+# AI Provider API Keys
 OPENAI_API_KEY=your_openai_key
 GOOGLE_GENERATIVE_AI_API_KEY=your_google_key
 
-# Authentication
+# Authentication Secrets
 AUTH_SECRET=your_auth_secret
 
 # SMTP Email Configuration
@@ -56,12 +97,12 @@ SMTP_SECURE=true
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-gmail-app-password
 
-# WhatsApp AI Agent Config
+# WhatsApp AI Agent Configuration
 NEXT_PUBLIC_AI_AGENT_WHATSAPP=+2348026322742
 ```
 
-### 3. Start Development Server
+### 3. Run the App
 ```bash
 pnpm dev
 ```
-Open http://localhost:3000 in your browser.
+Open [http://localhost:3000](http://localhost:3000) to view your dashboard.
