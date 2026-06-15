@@ -57,7 +57,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   };
 
   // Dashboard state
-  const [balances, setBalances] = useState({ cUSD: 0, usdc: 0, celo: 0 });
+  const [balances, setBalances] = useState({ cUSD: 0, usdc: 0, celo: 0, totalStablecoin: 0 });
   const [goals, setGoals] = useState<any[]>([]);
   const [bills, setBills] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -96,7 +96,13 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       const balRes = await fetch(`/api/paycon/balance?userId=${user.id}`);
       const balData = await balRes.json();
       if (balRes.ok) {
-        setBalances({ cUSD: balData.cUSD || 0, usdc: balData.usdc || 0, celo: balData.celo || 0 });
+        setBalances({
+          cUSD: balData.cUSD || 0,
+          usdc: balData.usdc || 0,
+          celo: balData.celo || 0,
+          // totalStablecoin is now returned by the API; fall back to sum if not present
+          totalStablecoin: balData.totalStablecoin ?? ((balData.cUSD || 0) + (balData.usdc || 0)),
+        });
       }
 
       // Savings Goals
@@ -591,7 +597,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
                     <span className="text-slate-500 text-xs">Total Capital</span>
-                    <span className="font-bold text-emerald-400 text-sm">${balances.cUSD.toFixed(2)} <span className="text-slate-500 text-[10px] font-normal">USDm</span></span>
+                    <span className="font-bold text-emerald-400 text-sm">${balances.totalStablecoin.toFixed(2)} <span className="text-slate-500 text-[10px] font-normal">USDm+USDC</span></span>
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
                     <span className="text-slate-500 text-xs">Savings Target</span>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUserById, getUserByPhone, getTransactions } from "@/lib/db/queries";
+import { getUserById, getUserByPhone, updateUserBalance } from "@/lib/db/queries";
 import { getStablecoinBalances } from "@/lib/wallet";
 
 export async function GET(request: Request) {
@@ -19,13 +19,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get real on-chain balance
+    // Fetch live on-chain balances from Celo Sepolia
     const onChain = await getStablecoinBalances(userData.walletAddress || "");
+
+    // ✅ Persist the balance snapshot to the DB (fire-and-forget, non-blocking)
+    updateUserBalance(userData.id, {
+      cUSD: onChain.cUSD,
+      usdc: onChain.usdc,
+      celo: onChain.celo,
+    }).catch((e) => console.warn("Balance snapshot save failed:", e));
 
     return NextResponse.json({
       cUSD: onChain.cUSD,
       usdc: onChain.usdc,
       celo: onChain.celo,
+      // Total capital = stablecoins only (not CELO, which is volatile gas token)
+      totalStablecoin: onChain.cUSD + onChain.usdc,
       onChain: {
         cUSD: onChain.cUSD,
         usdc: onChain.usdc,

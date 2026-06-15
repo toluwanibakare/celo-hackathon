@@ -820,3 +820,81 @@ export async function verifyOTP(email: string, otp: string, purpose: string): Pr
     return false;
   }
 }
+
+/**
+ * Persists the latest on-chain balance snapshot (cUSD, USDC, CELO) to the User row.
+ * Called by /api/paycon/balance every time a balance is fetched.
+ */
+export async function updateUserBalance(
+  userId: string,
+  balances: { cUSD: number; usdc: number; celo: number }
+): Promise<void> {
+  if (!db) {
+    mockDb.updateUserBalance(userId, balances);
+    return;
+  }
+  try {
+    await db
+      .update(user)
+      .set({
+        balanceCUSD: String(balances.cUSD),
+        balanceUSDC: String(balances.usdc),
+        balanceCELO: String(balances.celo),
+        balanceUpdatedAt: new Date(),
+      } as any)
+      .where(eq(user.id, userId));
+  } catch (error) {
+    console.warn("updateUserBalance failed:", error);
+  }
+}
+
+/**
+ * Saves an on-chain transaction to the DB only if it does not already exist
+ * (deduplication by txHash + userId). This keeps the DB in sync with Blockscout.
+ */
+export async function upsertOnChainTransaction(
+  userId: string,
+  data: {
+    txHash: string;
+    type: string;
+    amount: string;
+    token: string;
+    status: string;
+    description: string;
+    createdAt: string;
+  }
+): Promise<void> {
+  if (!db) {
+    mockDb.upsertOnChainTransaction(userId, data);
+    return;
+  }
+  try {
+    // Check if this txHash is already stored for this user
+    const existing = await db
+      .select({ id: transaction.id })
+      .from(transaction)
+      .where(
+        and(
+          eq(transaction.userId, userId),
+          eq(transaction.txHash as any, data.txHash)
+        )
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(transaction).values({
+        userId,
+        type: data.type,
+        amount: data.amount,
+        token: data.token,
+        status: data.status,
+        txHash: data.txHash,
+        description: data.description,
+        createdAt: new Date(data.createdAt),
+      } as any);
+    }
+  } catch (error) {
+    console.warn("upsertOnChainTransaction failed:", error);
+  }
+}
+

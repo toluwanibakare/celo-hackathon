@@ -19,6 +19,11 @@ export const user = pgTable('User', {
   walletAddress: varchar('walletAddress', { length: 64 }).unique(),
   phoneNumber: varchar('phoneNumber', { length: 32 }).unique(),
   walletPrivateKey: varchar('walletPrivateKey', { length: 128 }),
+  // On-chain balance snapshot — updated every time /api/paycon/balance is called
+  balanceCUSD: numeric('balanceCUSD', { precision: 18, scale: 8 }).default('0'),
+  balanceUSDC: numeric('balanceUSDC', { precision: 18, scale: 8 }).default('0'),
+  balanceCELO: numeric('balanceCELO', { precision: 18, scale: 8 }).default('0'),
+  balanceUpdatedAt: timestamp('balanceUpdatedAt'),
 });
 
 export type User = InferSelectModel<typeof user>;

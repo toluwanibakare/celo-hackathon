@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTransactions, createTransaction, getUserByPhone, getUserById } from "@/lib/db/queries";
+import { getTransactions, createTransaction, getUserByPhone, getUserById, upsertOnChainTransaction } from "@/lib/db/queries";
 
 // GET /api/paycon/transactions
 export async function GET(request: Request) {
@@ -116,7 +116,23 @@ export async function GET(request: Request) {
       }
     }
 
-    // Merge transactions: prioritize local DB transactions (they have richer descriptions and types)
+    // ✅ Persist any new on-chain txs to the DB (fire-and-forget, deduped by txHash)
+    if (onChainTxs.length > 0) {
+      Promise.all(
+        onChainTxs.map((tx) =>
+          upsertOnChainTransaction(targetUserId!, {
+            txHash: tx.txHash,
+            type: tx.type,
+            amount: tx.amount,
+            token: tx.token,
+            status: tx.status,
+            description: tx.description,
+            createdAt: tx.createdAt,
+          })
+        )
+      ).catch((e) => console.warn("upsertOnChainTransaction batch failed:", e));
+    }
+
     // using txHash to identify matching transactions.
     const mergedMap = new Map<string, any>();
 

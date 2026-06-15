@@ -112,6 +112,42 @@ export const mockDb = {
     return user || null;
   },
 
+  updateUserBalance: (userId: string, balances: { cUSD: number; usdc: number; celo: number }) => {
+    const db = initMockDb();
+    const user = db.users.find((u) => u.id === userId);
+    if (user) {
+      user.balanceCUSD = String(balances.cUSD);
+      user.balanceUSDC = String(balances.usdc);
+      user.balanceCELO = String(balances.celo);
+      user.balanceUpdatedAt = new Date().toISOString();
+      saveMockDb(db);
+    }
+    return user || null;
+  },
+
+  upsertOnChainTransaction: (userId: string, data: { txHash: string; type: string; amount: string; token: string; status: string; description: string; createdAt: string }) => {
+    const db = initMockDb();
+    // Deduplicate by txHash + userId
+    const existing = db.transactions.find(
+      (t) => t.txHash === data.txHash && t.userId === userId
+    );
+    if (existing) return existing;
+    const newTx = {
+      id: crypto.randomUUID(),
+      userId,
+      type: data.type,
+      amount: data.amount,
+      token: data.token,
+      status: data.status,
+      txHash: data.txHash,
+      description: data.description,
+      createdAt: data.createdAt,
+    };
+    db.transactions.push(newTx);
+    saveMockDb(db);
+    return newTx;
+  },
+
   getOrCreateUserByWalletAddress: (walletAddress: string) => {
     const db = initMockDb();
     let user = db.users.find((u) => u.walletAddress?.toLowerCase() === walletAddress.toLowerCase());
