@@ -69,11 +69,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   const [depositAmount, setDepositAmount] = useState("");
   const [depositToken, setDepositToken] = useState("cUSD");
 
-  const [showSwapModal, setShowSwapModal] = useState(false);
-  const [swapFromToken, setSwapFromToken] = useState("CELO");
-  const [swapToToken, setSwapToToken] = useState("cUSD");
-  const [swapAmount, setSwapAmount] = useState("");
-  const [isSwapping, setIsSwapping] = useState(false);
+
 
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [goalTitle, setGoalTitle] = useState("");
@@ -208,8 +204,8 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
     // Verify balance
     const needed = Number(contributeAmount);
-    if (balances.cUSD < needed) {
-      toast.error(`Insufficient USDm balance. You have $${balances.cUSD.toFixed(2)} USDm`);
+    if (balances.celo < needed) {
+      toast.error(`Insufficient CELO balance. You have ${balances.celo.toFixed(4)} CELO`);
       return;
     }
 
@@ -221,12 +217,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
           userId: user.id,
           goalId: contributeGoalId,
           amount: contributeAmount,
-          token: "cUSD",
+          token: "CELO",
         }),
       });
 
       if (res.ok) {
-        toast.success(`Contributed $${contributeAmount} to goal`);
+        toast.success(`Contributed ${contributeAmount} CELO to goal`);
         setContributeGoalId(null);
         setContributeAmount("");
         loadData(true);
@@ -238,77 +234,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
     }
   };
 
-  // Handle Swap submission
-  const handleSwapSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!swapAmount || Number(swapAmount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
 
-    const amt = Number(swapAmount);
-    if (swapFromToken === "CELO" && balances.celo < amt) {
-      toast.error(`Insufficient CELO balance (${balances.celo.toFixed(4)})`);
-      return;
-    } else if (swapFromToken === "cUSD" && balances.cUSD < amt) {
-      toast.error(`Insufficient USDm/cUSD balance (${balances.cUSD.toFixed(2)})`);
-      return;
-    } else if (swapFromToken === "USDC" && balances.usdc < amt) {
-      toast.error(`Insufficient USDC balance (${balances.usdc.toFixed(2)})`);
-      return;
-    }
-
-    if (swapFromToken === swapToToken) {
-      toast.error("Source and destination tokens must be different");
-      return;
-    }
-
-    setIsSwapping(true);
-    try {
-      const res = await fetch("/api/paycon/swap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          fromToken: swapFromToken,
-          toToken: swapToToken,
-          amount: swapAmount,
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(`Swapped ${swapAmount} ${swapFromToken} to ${data.destAmount?.toFixed(4)} ${swapToToken}!`);
-        // Optimistically update local balances
-        setBalances(prev => {
-          const amt = Number(swapAmount);
-          const destAmt = Number(data.destAmount ?? 0);
-          const updated = { ...prev };
-          if (swapFromToken === "CELO") {
-            updated.celo = Math.max(0, updated.celo - amt);
-            if (swapToToken === "cUSD" || swapToToken === "USDm") updated.cUSD += destAmt;
-            if (swapToToken === "USDC") updated.usdc += destAmt;
-          } else if (swapFromToken === "cUSD" || swapFromToken === "USDm") {
-            updated.cUSD = Math.max(0, updated.cUSD - amt);
-            if (swapToToken === "CELO") updated.celo += destAmt;
-          } else if (swapFromToken === "USDC") {
-            updated.usdc = Math.max(0, updated.usdc - amt);
-            if (swapToToken === "CELO") updated.celo += destAmt;
-          }
-          return updated;
-        });
-        setShowSwapModal(false);
-        setSwapAmount("");
-        loadData(true);
-      } else {
-        toast.error(data.error || "Swap failed");
-      }
-    } catch (err) {
-      toast.error("Swap execution failed");
-    } finally {
-      setIsSwapping(false);
-    }
-  };
 
   // Create Bill
   const handleCreateBillSubmit = async (e: React.FormEvent) => {
@@ -349,12 +275,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   // Pay Bill Action
   const handlePayBill = async (billId: string, title: string, amount: string) => {
     const cost = Number(amount);
-    if (balances.cUSD < cost) {
-      toast.error(`Insufficient USDm balance to pay this bill ($${cost.toFixed(2)} needed, $${balances.cUSD.toFixed(2)} available).`);
+    if (balances.celo < cost) {
+      toast.error(`Insufficient CELO balance to pay this bill (${cost.toFixed(4)} needed, ${balances.celo.toFixed(4)} available).`);
       return;
     }
 
-    const confirmPay = window.confirm(`Are you sure you want to pay "${title}" for $${amount} USDm?`);
+    const confirmPay = window.confirm(`Are you sure you want to pay "${title}" for ${amount} CELO?`);
     if (!confirmPay) return;
 
     try {
@@ -365,7 +291,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
           id: billId,
           userId: user.id,
           isPaid: true,
-          token: "cUSD",
+          token: "CELO",
         }),
       });
 
@@ -556,48 +482,28 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 mt-2 px-1">
-                    <div>
-                      <span className="text-[8px] text-slate-400 uppercase font-extrabold tracking-wider block">USDm Balance</span>
-                      <p className="text-base md:text-lg font-black text-emerald-400 mt-0.5">${balances.cUSD.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <span className="text-[8px] text-slate-400 uppercase font-extrabold tracking-wider block">USDC Balance</span>
-                      <p className="text-base md:text-lg font-black text-blue-400 mt-0.5">${balances.usdc.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <span className="text-[8px] text-slate-400 uppercase font-extrabold tracking-wider block">CELO Balance</span>
-                      <p className="text-base md:text-lg font-black text-yellow-400 mt-0.5">{balances.celo.toFixed(4)}</p>
-                    </div>
+                  <div className="mt-3 px-1">
+                    <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block">CELO Balance</span>
+                    <p className="text-3xl font-black text-yellow-400 mt-1">{balances.celo.toFixed(4)} <span className="text-sm text-slate-500 font-normal">CELO</span></p>
                   </div>
 
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-4">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowDepositModal(true);
                       }}
-                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-[11px] transition"
+                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-xs transition"
                     >
                       Fund Wallet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowSwapModal(true);
-                      }}
-                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-extrabold rounded-xl text-[11px] transition"
-                    >
-                      Swap / Convert
                     </button>
                     <a
                       href={`https://sepolia.celoscan.io/address/${user.walletAddress}`}
                       target="_blank"
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold rounded-xl text-[11px] transition border border-slate-700"
+                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-2 bg-slate-800 hover:bg-slate-755 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700"
                     >
                       Explorer
                     </a>
@@ -617,18 +523,18 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
                     <span className="text-slate-500 text-xs">Total Capital</span>
-                    <span className="font-bold text-emerald-400 text-sm">${balances.totalStablecoin.toFixed(2)} <span className="text-slate-500 text-[10px] font-normal">USDm+USDC</span></span>
+                    <span className="font-bold text-yellow-400 text-sm">{balances.celo.toFixed(4)} CELO</span>
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
                     <span className="text-slate-500 text-xs">Savings Target</span>
                     <span className="font-bold text-slate-200 text-sm">
-                      ${goals.reduce((acc, g) => acc + Number(g.targetAmount), 0).toFixed(2)}
+                      {goals.reduce((acc, g) => acc + Number(g.targetAmount), 0).toFixed(2)} CELO
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-500 text-xs">Unpaid Bills</span>
                     <span className="font-bold text-yellow-400 text-sm">
-                      {bills.filter((b) => !b.isPaid).length} <span className="text-slate-500 text-[10px] font-normal">(${bills.filter((b) => !b.isPaid).reduce((acc, b) => acc + Number(b.amount), 0).toFixed(2)})</span>
+                      {bills.filter((b) => !b.isPaid).length} <span className="text-slate-500 text-[10px] font-normal">({bills.filter((b) => !b.isPaid).reduce((acc, b) => acc + Number(b.amount), 0).toFixed(2)} CELO)</span>
                     </span>
                   </div>
                 </div>
@@ -724,7 +630,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                         <div className="flex justify-between items-center text-xs text-slate-400">
                           <span>
-                            Saved: <strong className="text-slate-200 font-bold">${current.toFixed(2)}</strong> / ${target.toFixed(2)} USDm (cUSD)
+                            Saved: <strong className="text-slate-200 font-bold">{current.toFixed(2)}</strong> / {target.toFixed(2)} CELO
                           </span>
                           {!isCompleted && (
                             <button
@@ -749,7 +655,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                             >
                               <input
                                 type="number"
-                                placeholder="Amount in USDm"
+                                placeholder="Amount in CELO"
                                 value={contributeAmount}
                                 onChange={(e) => setContributeAmount(e.target.value)}
                                 className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 text-slate-100 flex-1"
@@ -841,7 +747,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <span className="font-extrabold text-slate-200 block">${Number(bill.amount).toFixed(2)} USDm (cUSD)</span>
+                            <span className="font-extrabold text-slate-200 block">{Number(bill.amount).toFixed(2)} CELO</span>
                           </div>
 
                           <div className="flex items-center gap-1.5">
@@ -1024,137 +930,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
         )}
       </AnimatePresence>
 
-      {/* SWAP / CONVERT MODAL */}
-      <AnimatePresence>
-        {showSwapModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 16 }}
-              className="glass-card rounded-3xl w-full max-w-md overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.5)] border-yellow-500/20"
-            >
-              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
-                <h3 className="font-bold text-slate-100 flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4 text-yellow-500 animate-spin-slow" /> Swap / Convert Assets
-                </h3>
-                <button type="button" onClick={() => setShowSwapModal(false)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
 
-              <form onSubmit={handleSwapSubmit} className="px-6 py-5 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="swapFromToken" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      From Token
-                    </label>
-                    <select
-                      id="swapFromToken"
-                      value={swapFromToken}
-                      onChange={(e) => {
-                        setSwapFromToken(e.target.value);
-                        if (e.target.value === swapToToken) {
-                          setSwapToToken(e.target.value === "CELO" ? "cUSD" : "CELO");
-                        }
-                      }}
-                      className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
-                    >
-                      <option value="CELO">CELO ({balances.celo.toFixed(4)})</option>
-                      <option value="cUSD">USDm / cUSD ({balances.cUSD.toFixed(2)})</option>
-                      <option value="USDC">USDC ({balances.usdc.toFixed(2)})</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="swapToToken" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      To Token
-                    </label>
-                    <select
-                      id="swapToToken"
-                      value={swapToToken}
-                      onChange={(e) => {
-                        setSwapToToken(e.target.value);
-                        if (e.target.value === swapFromToken) {
-                          setSwapFromToken(e.target.value === "CELO" ? "cUSD" : "CELO");
-                        }
-                      }}
-                      className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
-                    >
-                      <option value="cUSD">USDm / cUSD ({balances.cUSD.toFixed(2)})</option>
-                      <option value="CELO">CELO ({balances.celo.toFixed(4)})</option>
-                      <option value="USDC">USDC ({balances.usdc.toFixed(2)})</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="swapAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Amount to Swap
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="swapAmount"
-                      type="number"
-                      step="any"
-                      placeholder="0.00"
-                      value={swapAmount}
-                      onChange={(e) => setSwapAmount(e.target.value)}
-                      className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (swapFromToken === "CELO") setSwapAmount(String(balances.celo));
-                        if (swapFromToken === "cUSD") setSwapAmount(String(balances.cUSD));
-                        if (swapFromToken === "USDC") setSwapAmount(String(balances.usdc));
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-slate-400 hover:text-slate-200 transition"
-                    >
-                      MAX
-                    </button>
-                  </div>
-                </div>
-
-                {swapAmount && !Number.isNaN(Number(swapAmount)) && Number(swapAmount) > 0 && (
-                  <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-1 text-slate-400">
-                    <div className="flex justify-between">
-                      <span>Rate:</span>
-                      <span>1 CELO ≈ 0.85 USDm</span>
-                    </div>
-                    <div className="flex justify-between font-semibold text-slate-200">
-                      <span>Estimated Output:</span>
-                      <span>
-                        {(Number(swapAmount) * (swapFromToken === "CELO" ? 0.85 : 1 / 0.85)).toFixed(4)}{" "}
-                        {swapToToken}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isSwapping}
-                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold py-2.5 rounded-xl
-                      disabled:opacity-50 transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                  >
-                    {isSwapping ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 animate-spin" /> Swapping on Celo...
-                      </>
-                    ) : (
-                      "Confirm Swap"
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* CREATE SAVINGS GOAL MODAL */}
       <AnimatePresence>
@@ -1194,12 +970,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                 <div>
                   <label htmlFor="goalTargetAmount" className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Target Amount (USDm)
+                    Target Amount (CELO)
                   </label>
                   <input
                     id="goalTargetAmount"
                     type="number"
-                    placeholder="Target in stablecoins"
+                    placeholder="Target in CELO"
                     value={goalTargetAmount}
                     onChange={(e) => setGoalTargetAmount(e.target.value)}
                     className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
@@ -1275,12 +1051,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
                 <div>
                   <label htmlFor="billAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Bill Amount (USDm)
+                    Bill Amount (CELO)
                   </label>
                   <input
                     id="billAmount"
                     type="number"
-                    placeholder="Amount to pay"
+                    placeholder="Amount in CELO"
                     value={billAmount}
                     onChange={(e) => setBillAmount(e.target.value)}
                     className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"

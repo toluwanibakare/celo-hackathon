@@ -22,51 +22,51 @@ export async function GET(request: Request) {
     // Fetch live on-chain balances from Celo Sepolia
     const onChain = await getStablecoinBalances(userData.walletAddress || "");
  
-    // Fetch all transaction records to compute adjustments for simulated swap deposits and withdrawals
+    // Fetch all transaction records to compute adjustments for simulated deposits/withdrawals/payments
     const txs = await getTransactions(userData.id);
-    const swapAdjustments = { cUSD: 0, usdc: 0, celo: 0 };
+    let celoAdjustment = 0;
     for (const tx of txs) {
-      const descLower = tx.description?.toLowerCase() || "";
-      const isSwap = descLower.includes("swap");
-      const isDeposit = tx.type === "deposit" && descLower.includes("received");
-      const isWithdrawal = tx.type === "withdrawal" && descLower.includes("sold");
+      // Skip actual on-chain transactions to avoid double-counting
+      if (tx.id && tx.id.startsWith("onchain-")) {
+        continue;
+      }
+      if (tx.txHash) {
+        continue;
+      }
+      
+      const amt = Number(tx.amount);
+      if (Number.isNaN(amt)) continue;
 
-      if (isSwap && (isDeposit || isWithdrawal)) {
-        const tokenUpper = tx.token.toUpperCase();
-        const amt = Number(tx.amount);
-        const direction = isDeposit ? 1 : -1;
-        
-        if (tokenUpper === "CUSD" || tokenUpper === "USDM") {
-          swapAdjustments.cUSD += amt * direction;
-        } else if (tokenUpper === "USDC") {
-          swapAdjustments.usdc += amt * direction;
-        } else if (tokenUpper === "CELO") {
-          swapAdjustments.celo += amt * direction;
-        }
+      if (tx.type === "deposit") {
+        celoAdjustment += amt;
+      } else if (
+        tx.type === "withdrawal" || 
+        tx.type === "bill_payment" || 
+        tx.type === "savings_contribution" || 
+        tx.type === "transfer"
+      ) {
+        celoAdjustment -= amt;
       }
     }
 
-    // Adjust balances, ensuring they do not drop below zero
-    const finalCUSD = Math.max(0, onChain.cUSD + swapAdjustments.cUSD);
-    const finalUSDC = Math.max(0, onChain.usdc + swapAdjustments.usdc);
-    const finalCELO = Math.max(0, onChain.celo + swapAdjustments.celo);
+    // Adjust CELO balance, ensuring it does not drop below zero
+    const finalCELO = Math.max(0, onChain.celo + celoAdjustment);
 
-    // ✅ Persist the balance snapshot to the DB (fire-and-forget, non-blocking)
+    // Persist the balance snapshot to the DB
     updateUserBalance(userData.id, {
-      cUSD: finalCUSD,
-      usdc: finalUSDC,
+      cUSD: 0,
+      usdc: 0,
       celo: finalCELO,
     }).catch((e) => console.warn("Balance snapshot save failed:", e));
 
     return NextResponse.json({
-      cUSD: finalCUSD,
-      usdc: finalUSDC,
+      cUSD: 0,
+      usdc: 0,
       celo: finalCELO,
-      // Total capital = stablecoins only (not CELO, which is volatile gas token)
-      totalStablecoin: finalCUSD + finalUSDC,
+      totalStablecoin: 0,
       onChain: {
-        cUSD: onChain.cUSD,
-        usdc: onChain.usdc,
+        cUSD: 0,
+        usdc: 0,
         celo: onChain.celo,
       },
     });
