@@ -29,19 +29,19 @@ export default function Page() {
     if (state.status === 'failed') {
       toast({
         type: 'error',
-        description: 'Invalid credentials!',
+        description: state.error || 'Invalid credentials!',
       });
     } else if (state.status === 'invalid_data') {
       toast({
         type: 'error',
-        description: 'Failed validating your submission!',
+        description: state.error || 'Failed validating your submission!',
       });
     } else if (state.status === 'success') {
       setIsSuccessful(true);
       (updateSession as any)();
       router.push('/dashboard');
     }
-  }, [state.status, router]);
+  }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);

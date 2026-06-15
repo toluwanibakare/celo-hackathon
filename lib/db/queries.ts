@@ -66,8 +66,8 @@ export async function getUser(email: string): Promise<Array<User>> {
   if (!db) return mockDb.getUser(email);
   try {
     return await db.select().from(user).where(eq(user.email, email));
-  } catch (error) {
-    throw new ChatSDKError("bad_request:database", "Failed to get user by email");
+  } catch (error: any) {
+    throw new ChatSDKError("bad_request:database", error?.message || String(error));
   }
 }
 
@@ -151,8 +151,8 @@ export async function createUser(
         walletPrivateKey: walletPrivateKey || null,
       })
       .returning();
-  } catch (error) {
-    throw new ChatSDKError("bad_request:database", "Failed to create user");
+  } catch (error: any) {
+    throw new ChatSDKError("bad_request:database", error?.message || String(error));
   }
 }
 
@@ -545,10 +545,10 @@ export async function updateChatVisiblityById({ id, visibility }: any) {
 export async function getUserByPhone(phone: string): Promise<User | null> {
   if (!db) return mockDb.getUserByPhone(phone);
   try {
-    const [selectedUser] = await db.select().from(user).where(eq(user.phoneNumber, phone)).limit(1);
-    return selectedUser || null;
-  } catch (error) {
-    return null;
+    const [selectedUser] = await db.select().from(user).where(eq(user.phoneNumber, phone));
+    return selectedUser as User;
+  } catch (error: any) {
+    throw new ChatSDKError("bad_request:database", error?.message || String(error));
   }
 }
 

@@ -6,6 +6,7 @@ import { compareSync } from "bcrypt-ts";
 import { createUser, getUser, getUserByPhone } from "@/lib/db/queries";
 import { generateHashedPassword } from "@/lib/db/utils";
 import { generateCeloWallet } from "@/lib/wallet";
+import { ChatSDKError } from "@/lib/errors";
 
 const authFormSchema = z.object({
   email: z.string().email(),
@@ -15,6 +16,7 @@ const authFormSchema = z.object({
 
 export interface LoginActionState {
   status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
+  error?: string;
 }
 
 export const login = async (
@@ -51,11 +53,13 @@ export const login = async (
     });
 
     return { status: "success" };
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Login failed:", error);
     if (error instanceof z.ZodError) {
-      return { status: "invalid_data" };
+      return { status: "invalid_data", error: error.message };
     }
-    return { status: "failed" };
+    const errMsg = error instanceof ChatSDKError ? (error.cause || error.message) : (error?.message || String(error));
+    return { status: "failed", error: errMsg };
   }
 };
 
@@ -68,6 +72,7 @@ export interface RegisterActionState {
     | "user_exists"
     | "phone_exists"
     | "invalid_data";
+  error?: string;
 }
 
 export const register = async (
@@ -129,12 +134,13 @@ export const register = async (
     });
 
     return { status: "success" };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Registration failed:", error);
     if (error instanceof z.ZodError) {
-      return { status: "invalid_data" };
+      return { status: "invalid_data", error: error.message };
     }
-    return { status: "failed" };
+    const errMsg = error instanceof ChatSDKError ? (error.cause || error.message) : (error?.message || String(error));
+    return { status: "failed", error: errMsg };
   }
 };
 
