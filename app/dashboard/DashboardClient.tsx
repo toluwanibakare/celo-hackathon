@@ -279,6 +279,24 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       const data = await res.json();
       if (res.ok) {
         toast.success(`Swapped ${swapAmount} ${swapFromToken} to ${data.destAmount?.toFixed(4)} ${swapToToken}!`);
+        // Optimistically update local balances
+        setBalances(prev => {
+          const amt = Number(swapAmount);
+          const destAmt = Number(data.destAmount ?? 0);
+          const updated = { ...prev };
+          if (swapFromToken === "CELO") {
+            updated.celo = Math.max(0, updated.celo - amt);
+            if (swapToToken === "cUSD" || swapToToken === "USDm") updated.cUSD += destAmt;
+            if (swapToToken === "USDC") updated.usdc += destAmt;
+          } else if (swapFromToken === "cUSD" || swapFromToken === "USDm") {
+            updated.cUSD = Math.max(0, updated.cUSD - amt);
+            if (swapToToken === "CELO") updated.celo += destAmt;
+          } else if (swapFromToken === "USDC") {
+            updated.usdc = Math.max(0, updated.usdc - amt);
+            if (swapToToken === "CELO") updated.celo += destAmt;
+          }
+          return updated;
+        });
         setShowSwapModal(false);
         setSwapAmount("");
         loadData(true);
