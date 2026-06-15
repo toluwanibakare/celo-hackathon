@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { logout } from "@/app/(auth)/actions";
+import { AIChatDrawer } from "@/components/chat/AIChatDrawer";
 
 interface User {
   id: string;
@@ -88,6 +89,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   const [contributeGoalId, setContributeGoalId] = useState<string | null>(null);
   const [contributeAmount, setContributeAmount] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   // Fetch dashboard data
   const loadData = useCallback(async (silent = false) => {
@@ -425,30 +427,17 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
             <span className="text-slate-200 font-semibold">{user.email}</span>
             {user.phoneNumber && <span className="text-slate-500 font-mono text-[10px]">{user.phoneNumber}</span>}
           </div>
-          <a
-            href="https://wa.me/15556698050"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => setShowChat(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] md:text-xs font-bold
               bg-emerald-500/15 border border-emerald-500/30 text-emerald-400
               hover:bg-emerald-500/25 hover:border-emerald-500/60
               hover:shadow-[0_0_12px_rgba(44,168,103,0.25)] transition-all duration-200"
           >
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">AI Chat (WhatsApp)</span>
-          </a>
-          <a
-            href="https://ennyty27.app.n8n.cloud/webhook/paycon"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] md:text-xs font-bold
-              bg-yellow-500/15 border border-yellow-500/30 text-yellow-400
-              hover:bg-yellow-500/25 hover:border-yellow-500/60
-              hover:shadow-[0_0_12px_rgba(251,191,36,0.25)] transition-all duration-200"
-          >
-            <RefreshCw className="h-3.5 w-3.5 animate-spin-slow" />
-            <span className="hidden sm:inline">Talk to Agent (n8n)</span>
-          </a>
+            <MessageCircle className="h-3.5 w-3.5 animate-pulse" />
+            <span className="hidden sm:inline">AI Chat</span>
+          </button>
           <button
             type="button"
             onClick={() => setShowLogoutModal(true)}
@@ -629,7 +618,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
 
               <div className="mt-5 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 flex items-start gap-2.5 text-xs text-slate-400">
                 <AlertCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">WhatsApp assistant active — ask your AI coach to contribute or review budgets anytime.</span>
+                <span className="leading-relaxed">AI assistant active — click the 'AI Chat' button in the top right to start a chat with your AI coach anytime.</span>
               </div>
             </div>
           </div>
@@ -1378,6 +1367,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
           </div>
         )}
       </AnimatePresence>
+
+      <AIChatDrawer
+        isOpen={showChat}
+        onClose={() => setShowChat(false)}
+        user={user}
+      />
     </div>
   );
 }
