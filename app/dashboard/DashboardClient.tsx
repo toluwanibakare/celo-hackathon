@@ -842,7 +842,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                             </button>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
