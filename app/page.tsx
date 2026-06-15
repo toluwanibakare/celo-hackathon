@@ -385,12 +385,12 @@ export default function LandingPage() {
 
         {/* Scroll indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
-          animate={{ y: [0, 8, 0] }}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+          animate={{ y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <div className="w-6 h-10 rounded-full border border-white/20 flex items-start justify-center pt-2">
-            <div className="w-1 h-3 rounded-full bg-white/40" />
+          <div className="w-4 h-7 rounded-full border border-white/15 flex items-start justify-center pt-1.5">
+            <div className="w-0.5 h-2 rounded-full bg-white/30" />
           </div>
         </motion.div>
       </section>
