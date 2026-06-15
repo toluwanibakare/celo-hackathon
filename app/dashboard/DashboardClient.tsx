@@ -862,7 +862,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                 
                 <div className="pt-4 flex flex-col gap-2">
                   <a
-                    href="https://faucet.celo.org/sepolia"
+                    href="https://faucet.celo.org/celo-sepolia"
                     target="_blank"
                     rel="noreferrer"
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm text-center shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
