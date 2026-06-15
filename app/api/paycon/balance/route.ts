@@ -25,9 +25,11 @@ export async function GET(request: Request) {
     return NextResponse.json({
       cUSD: onChain.cUSD,
       usdc: onChain.usdc,
+      celo: onChain.celo,
       onChain: {
         cUSD: onChain.cUSD,
         usdc: onChain.usdc,
+        celo: onChain.celo,
       },
     });
   } catch (error: any) {

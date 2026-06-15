@@ -324,19 +324,19 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* HEADER NAVBAR */}
-      <header className="border-b border-slate-900 bg-slate-900 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3">
+      <header className="border-b border-slate-900 bg-slate-900 px-3 md:px-8 py-3 md:py-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Custom logo badge */}
-          <div className="relative w-14 h-14 rounded-xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex-shrink-0 flex items-center justify-center p-0.5 shadow-yellow-500/10">
+          <div className="relative w-10 h-10 md:w-14 md:h-14 rounded-xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex-shrink-0 flex items-center justify-center p-0.5 shadow-yellow-500/10">
             <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain scale-110" />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">
+            <h1 className="text-lg md:text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">
               Paycon
             </h1>
-            <div className="flex items-center gap-2">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wider border ${
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
+              <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wider border ${
                 isMock ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               }`} title={isMock ? "Running in local storage mock mode." : "Connected to secure cloud vault storage."}>
                 {isMock ? "Local Mode" : "Cloud Storage Active"}
@@ -345,7 +345,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4">
           <div className="hidden lg:flex flex-col text-right text-xs">
             <span className="text-slate-300 font-bold">{user.email}</span>
             {user.phoneNumber && <span className="text-slate-400 font-mono text-[10px]">{user.phoneNumber}</span>}
@@ -354,18 +354,19 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-slate-950 transition shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-1 px-2.5 py-2 md:px-3.5 md:py-2 rounded-xl text-[11px] md:text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-slate-950 transition shadow-lg shadow-emerald-500/20"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            <span>Chat with AI Agent</span>
+            <span className="hidden sm:inline">Chat with AI Agent</span>
+            <span className="sm:hidden">Chat</span>
           </a>
           <button
             type="button"
             onClick={() => setShowLogoutModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition"
+            className="flex items-center gap-1 px-2.5 py-2 md:px-3.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition"
           >
             <LogOut className="h-3.5 w-3.5" />
-            <span>Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>

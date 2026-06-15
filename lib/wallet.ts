@@ -36,13 +36,15 @@ export async function getStablecoinBalances(address: string) {
     return {
       cUSD: 0,
       usdc: 0,
+      celo: 0,
       cUSDRaw: "0",
       usdcRaw: "0",
+      celoRaw: "0",
     };
   }
 
   try {
-    const [cUSDRaw, usdcRaw] = await Promise.all([
+    const [cUSDRaw, usdcRaw, celoRaw] = await Promise.all([
       publicClient.readContract({
         address: CUSD_SEPOLIA_ADDRESS,
         abi: erc20Abi,
@@ -55,17 +57,23 @@ export async function getStablecoinBalances(address: string) {
         functionName: "balanceOf",
         args: [address as `0x${string}`],
       }).catch(() => 0n),
+      publicClient.getBalance({
+        address: address as `0x${string}`,
+      }).catch(() => 0n),
     ]);
 
     // Format the balances
     const cUSD = Number(cUSDRaw) / 1e18;
     const usdc = Number(usdcRaw) / 1e6;
+    const celo = Number(celoRaw) / 1e18;
 
     return {
       cUSD,
       usdc,
+      celo,
       cUSDRaw: cUSDRaw.toString(),
       usdcRaw: usdcRaw.toString(),
+      celoRaw: celoRaw.toString(),
     };
   } catch (error) {
     console.error("Failed to fetch on-chain balances:", error);
