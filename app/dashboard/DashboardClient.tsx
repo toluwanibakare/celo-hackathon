@@ -421,7 +421,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       <header className="border-b border-white/5 bg-slate-950/80 backdrop-blur-xl px-3 md:px-8 py-3 md:py-4 flex items-center justify-between sticky top-0 z-40 shadow-[0_1px_0_rgba(44,168,103,0.08)]">
         <div className="flex items-center gap-2 md:gap-3">
           {/* Custom logo badge */}
-          <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden shadow-lg border border-yellow-400/25 bg-yellow-500/10 flex-shrink-0 flex items-center justify-center p-0.5 animate-gold-glow">
+          <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden shadow-lg border border-yellow-400/25 bg-yellow-400 flex-shrink-0 flex items-center justify-center p-0.5 animate-gold-glow">
             <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain scale-110" />
           </div>
           <div>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUserById, getUserByPhone, updateUserBalance } from "@/lib/db/queries";
+import { getUserById, getUserByPhone, updateUserBalance, getTransactions } from "@/lib/db/queries";
 import { getStablecoinBalances } from "@/lib/wallet";
 
 export async function GET(request: Request) {
@@ -22,19 +22,40 @@ export async function GET(request: Request) {
     // Fetch live on-chain balances from Celo Sepolia
     const onChain = await getStablecoinBalances(userData.walletAddress || "");
 
+    // Fetch all transaction records to compute adjustments for simulated swap deposits
+    const txs = await getTransactions(userData.id);
+    const swapAdjustments = { cUSD: 0, usdc: 0, celo: 0 };
+    for (const tx of txs) {
+      if (tx.type === "deposit" && tx.description?.startsWith("Swap: Received")) {
+        const tokenUpper = tx.token.toUpperCase();
+        const amt = Number(tx.amount);
+        if (tokenUpper === "CUSD" || tokenUpper === "USDM") {
+          swapAdjustments.cUSD += amt;
+        } else if (tokenUpper === "USDC") {
+          swapAdjustments.usdc += amt;
+        } else if (tokenUpper === "CELO") {
+          swapAdjustments.celo += amt;
+        }
+      }
+    }
+
+    const finalCUSD = onChain.cUSD + swapAdjustments.cUSD;
+    const finalUSDC = onChain.usdc + swapAdjustments.usdc;
+    const finalCELO = onChain.celo + swapAdjustments.celo;
+
     // ✅ Persist the balance snapshot to the DB (fire-and-forget, non-blocking)
     updateUserBalance(userData.id, {
-      cUSD: onChain.cUSD,
-      usdc: onChain.usdc,
-      celo: onChain.celo,
+      cUSD: finalCUSD,
+      usdc: finalUSDC,
+      celo: finalCELO,
     }).catch((e) => console.warn("Balance snapshot save failed:", e));
 
     return NextResponse.json({
-      cUSD: onChain.cUSD,
-      usdc: onChain.usdc,
-      celo: onChain.celo,
+      cUSD: finalCUSD,
+      usdc: finalUSDC,
+      celo: finalCELO,
       // Total capital = stablecoins only (not CELO, which is volatile gas token)
-      totalStablecoin: onChain.cUSD + onChain.usdc,
+      totalStablecoin: finalCUSD + finalUSDC,
       onChain: {
         cUSD: onChain.cUSD,
         usdc: onChain.usdc,
