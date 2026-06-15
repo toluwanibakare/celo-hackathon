@@ -748,7 +748,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                             </motion.form>
                           )}
                         </AnimatePresence>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
