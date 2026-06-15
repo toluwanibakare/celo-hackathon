@@ -67,6 +67,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   const [depositAmount, setDepositAmount] = useState("");
   const [depositToken, setDepositToken] = useState("cUSD");
 
+  const [showSwapModal, setShowSwapModal] = useState(false);
+  const [swapFromToken, setSwapFromToken] = useState("CELO");
+  const [swapToToken, setSwapToToken] = useState("cUSD");
+  const [swapAmount, setSwapAmount] = useState("");
+  const [isSwapping, setIsSwapping] = useState(false);
+
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [goalTitle, setGoalTitle] = useState("");
   const [goalTargetAmount, setGoalTargetAmount] = useState("");
@@ -223,6 +229,60 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
     }
   };
 
+  // Handle Swap submission
+  const handleSwapSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!swapAmount || Number(swapAmount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    const amt = Number(swapAmount);
+    if (swapFromToken === "CELO" && balances.celo < amt) {
+      toast.error(`Insufficient CELO balance (${balances.celo.toFixed(4)})`);
+      return;
+    } else if (swapFromToken === "cUSD" && balances.cUSD < amt) {
+      toast.error(`Insufficient USDm/cUSD balance (${balances.cUSD.toFixed(2)})`);
+      return;
+    } else if (swapFromToken === "USDC" && balances.usdc < amt) {
+      toast.error(`Insufficient USDC balance (${balances.usdc.toFixed(2)})`);
+      return;
+    }
+
+    if (swapFromToken === swapToToken) {
+      toast.error("Source and destination tokens must be different");
+      return;
+    }
+
+    setIsSwapping(true);
+    try {
+      const res = await fetch("/api/paycon/swap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          fromToken: swapFromToken,
+          toToken: swapToToken,
+          amount: swapAmount,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Swapped ${swapAmount} ${swapFromToken} to ${data.destAmount?.toFixed(4)} ${swapToToken}!`);
+        setShowSwapModal(false);
+        setSwapAmount("");
+        loadData(true);
+      } else {
+        toast.error(data.error || "Swap failed");
+      }
+    } catch (err) {
+      toast.error("Swap execution failed");
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
   // Create Bill
   const handleCreateBillSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -322,48 +382,60 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+      {/* Ambient orb backgrounds */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="orb orb-green animate-orb-1" style={{ width: 600, height: 600, top: '-10%', left: '-8%', opacity: 0.06 }} />
+        <div className="orb orb-gold animate-orb-2" style={{ width: 500, height: 500, bottom: '-10%', right: '-5%', opacity: 0.05 }} />
+        <div className="orb orb-blue animate-orb-1" style={{ width: 350, height: 350, top: '45%', right: '20%', opacity: 0.04, animationDelay: '6s' }} />
+      </div>
+
       {/* HEADER NAVBAR */}
-      <header className="border-b border-slate-900 bg-slate-900 px-3 md:px-8 py-3 md:py-4 flex items-center justify-between sticky top-0 z-40">
+      <header className="border-b border-white/5 bg-slate-950/80 backdrop-blur-xl px-3 md:px-8 py-3 md:py-4 flex items-center justify-between sticky top-0 z-40 shadow-[0_1px_0_rgba(44,168,103,0.08)]">
         <div className="flex items-center gap-2 md:gap-3">
           {/* Custom logo badge */}
-          <div className="relative w-10 h-10 md:w-14 md:h-14 rounded-xl overflow-hidden shadow-lg border border-yellow-400/20 bg-yellow-500 flex-shrink-0 flex items-center justify-center p-0.5 shadow-yellow-500/10">
+          <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden shadow-lg border border-yellow-400/25 bg-yellow-500/10 flex-shrink-0 flex items-center justify-center p-0.5 animate-gold-glow">
             <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain scale-110" />
           </div>
           <div>
-            <h1 className="text-lg md:text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-blue-400 to-yellow-300 bg-clip-text text-transparent">
+            <h1 className="text-lg md:text-xl font-black tracking-tight gradient-text-green">
               Paycon
             </h1>
             <div className="flex items-center gap-1.5 md:gap-2">
               <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
-              <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wider border ${
-                isMock ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              <span className={`inline-flex items-center gap-1 text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider border ${
+                isMock ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               }`} title={isMock ? "Running in local storage mock mode." : "Connected to secure cloud vault storage."}>
-                {isMock ? "Local Mode" : "Cloud Storage Active"}
+                <span className={`w-1 h-1 rounded-full inline-block ${isMock ? 'bg-yellow-400' : 'bg-emerald-400 animate-pulse'}`} />
+                {isMock ? "Local Mode" : "Live"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <div className="hidden lg:flex flex-col text-right text-xs">
-            <span className="text-slate-300 font-bold">{user.email}</span>
-            {user.phoneNumber && <span className="text-slate-400 font-mono text-[10px]">{user.phoneNumber}</span>}
+            <span className="text-slate-200 font-semibold">{user.email}</span>
+            {user.phoneNumber && <span className="text-slate-500 font-mono text-[10px]">{user.phoneNumber}</span>}
           </div>
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1 px-2.5 py-2 md:px-3.5 md:py-2 rounded-xl text-[11px] md:text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-slate-950 transition shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] md:text-xs font-bold
+              bg-emerald-500/15 border border-emerald-500/30 text-emerald-400
+              hover:bg-emerald-500/25 hover:border-emerald-500/60
+              hover:shadow-[0_0_12px_rgba(44,168,103,0.25)] transition-all duration-200"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Chat with AI Agent</span>
-            <span className="sm:hidden">Chat</span>
+            <span className="hidden sm:inline">AI Chat</span>
           </a>
           <button
             type="button"
             onClick={() => setShowLogoutModal(true)}
-            className="flex items-center gap-1 px-2.5 py-2 md:px-3.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-[11px] md:text-xs font-bold
+              bg-slate-800/60 border border-slate-700/50 text-slate-400
+              hover:bg-slate-700/60 hover:text-slate-200 transition-all duration-200"
           >
             <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Logout</span>
@@ -372,17 +444,20 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       </header>
 
       {/* DASHBOARD BODY CONTAINER */}
-      <main className="flex-1 flex overflow-hidden relative">
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 flex overflow-hidden relative z-10">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-8 space-y-6 max-w-7xl mx-auto w-full">
           {isLoading && (
-            <div className="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center gap-3">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-emerald-400 border-r-2 border-transparent" />
-              <p className="text-slate-400 text-sm font-semibold">Syncing with Storage & Celo...</p>
+            <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-pulse-ring" />
+                <div className="animate-spin rounded-full h-12 w-12 border-2 border-emerald-500/20 border-t-emerald-400" />
+              </div>
+              <p className="text-slate-400 text-sm font-medium">Syncing with Celo...</p>
             </div>
           )}
 
           {/* TOP CARDS ROW */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* 3D FLIPPING ATM CARD CONTAINER */}
             <div className="lg:col-span-2 perspective-1000 w-full h-[260px] md:h-[240px]">
               <div 
@@ -470,25 +545,35 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     </div>
                   </div>
 
-                  <div className="flex gap-2.5 mt-2">
+                  <div className="flex gap-2 mt-2">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowDepositModal(true);
                       }}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-xs transition"
+                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-[11px] transition"
                     >
                       Fund Wallet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSwapModal(true);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-extrabold rounded-xl text-[11px] transition"
+                    >
+                      Swap / Convert
                     </button>
                     <a
                       href={`https://sepolia.celoscan.io/address/${user.walletAddress}`}
                       target="_blank"
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700"
+                      className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold rounded-xl text-[11px] transition border border-slate-700"
                     >
-                      Block Explorer
+                      Explorer
                     </a>
                   </div>
                 </div>
@@ -496,66 +581,71 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
               </div>
             </div>
 
-            {/* QUICK HEALTH CARD - Green Theme */}
-            <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-emerald-500 border-r-4 border-r-emerald-600 p-6 rounded-2xl flex flex-col justify-between shadow-xl">
+            {/* QUICK HEALTH CARD */}
+            <div className="glass-card rounded-2xl p-5 flex flex-col justify-between border-l-2 border-l-emerald-500/60">
               <div>
-                <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-4">Financial Health</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
-                    <span className="text-slate-400">Total Capital:</span>
-                    <span className="font-extrabold text-slate-200">${balances.cUSD.toFixed(2)} USDm (cUSD)</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Financial Health</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
+                    <span className="text-slate-500 text-xs">Total Capital</span>
+                    <span className="font-bold text-emerald-400 text-sm">${balances.cUSD.toFixed(2)} <span className="text-slate-500 text-[10px] font-normal">USDm</span></span>
                   </div>
-                  <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
-                    <span className="text-slate-400">Savings Target:</span>
-                    <span className="font-extrabold text-slate-200">
+                  <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
+                    <span className="text-slate-500 text-xs">Savings Target</span>
+                    <span className="font-bold text-slate-200 text-sm">
                       ${goals.reduce((acc, g) => acc + Number(g.targetAmount), 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Unpaid Bills:</span>
-                    <span className="font-extrabold text-yellow-400">
-                      {bills.filter((b) => !b.isPaid).length} bills (${bills.filter((b) => !b.isPaid).reduce((acc, b) => acc + Number(b.amount), 0).toFixed(2)})
+                    <span className="text-slate-500 text-xs">Unpaid Bills</span>
+                    <span className="font-bold text-yellow-400 text-sm">
+                      {bills.filter((b) => !b.isPaid).length} <span className="text-slate-500 text-[10px] font-normal">(${bills.filter((b) => !b.isPaid).reduce((acc, b) => acc + Number(b.amount), 0).toFixed(2)})</span>
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-start gap-2.5 text-xs text-slate-400">
-                <AlertCircle className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>
-                  <strong>WhatsApp updates:</strong> Your savings assistant is active on WhatsApp! Ask your coach directly to contribute or view budgets.
-                </span>
+              <div className="mt-5 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 flex items-start gap-2.5 text-xs text-slate-400">
+                <AlertCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">WhatsApp assistant active — ask your AI coach to contribute or review budgets anytime.</span>
               </div>
             </div>
           </div>
 
           {/* GRID OF GOALS AND BILLS */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            {/* SAVINGS GOALS - Green theme top border */}
-            <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-emerald-500 rounded-2xl p-6 shadow-xl flex flex-col gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            {/* SAVINGS GOALS */}
+            <div className="glass-card rounded-2xl p-5 flex flex-col gap-5 border-t-2 border-t-emerald-500/60">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-emerald-400">
-                    <TrendingUp className="h-5 w-5" />
+                <div className="flex items-center gap-2.5">
+                  <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 text-emerald-400">
+                    <TrendingUp className="h-4 w-4" />
                   </div>
-                  <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight">Savings Goals</h2>
+                  <h2 className="text-base font-bold text-slate-100 tracking-tight">Savings Goals</h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowGoalModal(true)}
-                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-600 transition font-extrabold shadow-md shadow-emerald-500/10"
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl
+                    bg-emerald-500/15 border border-emerald-500/30 text-emerald-400
+                    hover:bg-emerald-500/25 hover:border-emerald-500/50
+                    hover:shadow-[0_0_10px_rgba(44,168,103,0.2)] transition-all duration-200 font-semibold"
                 >
-                  <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> Create Goal
+                  <Plus className="h-3.5 w-3.5" /> New Goal
                 </button>
               </div>
 
               {goals.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl">
-                  <p className="text-slate-500 text-sm">No savings goals yet.</p>
-                  <p className="text-xs text-slate-600 mt-1">Create one to start budgeting and saving automatically.</p>
+                <div className="text-center py-10 border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
+                  <TrendingUp className="h-8 w-8 text-slate-700 mx-auto mb-3" />
+                  <p className="text-slate-400 text-sm font-medium">No savings goals yet</p>
+                  <p className="text-xs text-slate-600 mt-1">Create one to start budgeting automatically.</p>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
                   {goals.map((goal) => {
                     const current = Number(goal.currentAmount);
                     const target = Number(goal.targetAmount);
@@ -563,9 +653,11 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     const isCompleted = current >= target;
 
                     return (
-                      <div
+                      <motion.div
                         key={goal.id}
-                        className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col gap-3 relative group"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white/[0.03] border border-white/8 hover:border-emerald-500/20 p-4 rounded-2xl flex flex-col gap-3 relative group transition-all duration-200 hover:bg-white/[0.05]"
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -592,10 +684,15 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                         </div>
 
                         {/* Progress Bar */}
-                        <div className="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                        <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
                           <div
-                            className="bg-gradient-to-r from-emerald-500 to-blue-500 h-full rounded-full transition-all duration-500"
-                            style={{ width: `${progress}%` }}
+                            className="h-full rounded-full transition-all duration-700 ease-out"
+                            style={{
+                              width: `${progress}%`,
+                              background: isCompleted
+                                ? 'linear-gradient(90deg, #2CA867, #4ade80)'
+                                : 'linear-gradient(90deg, #2CA867, #60a5fa)'
+                            }}
                           />
                         </div>
 
@@ -658,39 +755,47 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
               )}
             </div>
 
-            {/* BILL PLANNER - Yellow/Gold theme top border */}
-            <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-yellow-500 rounded-2xl p-6 shadow-xl flex flex-col gap-6">
+            {/* BILL PLANNER */}
+            <div className="glass-card rounded-2xl p-5 flex flex-col gap-5 border-t-2 border-t-yellow-500/60">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="bg-yellow-550/10 p-2 rounded-lg border border-yellow-500/20 text-yellow-500">
-                    <Calendar className="h-5 w-5" />
+                <div className="flex items-center gap-2.5">
+                  <div className="bg-yellow-500/10 p-2 rounded-xl border border-yellow-500/20 text-yellow-400">
+                    <Calendar className="h-4 w-4" />
                   </div>
-                  <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight">Bill Planner</h2>
+                  <h2 className="text-base font-bold text-slate-100 tracking-tight">Bill Planner</h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowBillModal(true)}
-                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-xl bg-yellow-500 text-slate-950 hover:bg-yellow-600 transition font-extrabold shadow-md shadow-yellow-500/10"
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl
+                    bg-yellow-500/10 border border-yellow-500/25 text-yellow-400
+                    hover:bg-yellow-500/20 hover:border-yellow-500/50
+                    hover:shadow-[0_0_10px_rgba(251,204,92,0.15)] transition-all duration-200 font-semibold"
                 >
-                  <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> Add Bill
+                  <Plus className="h-3.5 w-3.5" /> Add Bill
                 </button>
               </div>
 
               {bills.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl">
-                  <p className="text-slate-500 text-sm">No bills added yet.</p>
-                  <p className="text-xs text-slate-600 mt-1">Add regular bills here to enable tracking and pay them instantly.</p>
+                <div className="text-center py-10 border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
+                  <Calendar className="h-8 w-8 text-slate-700 mx-auto mb-3" />
+                  <p className="text-slate-400 text-sm font-medium">No bills added yet</p>
+                  <p className="text-xs text-slate-600 mt-1">Add bills to track and pay them instantly.</p>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
                   {bills.map((bill) => {
                     const isPaid = bill.isPaid;
                     const dueDateStr = new Date(bill.dueDate).toLocaleDateString();
 
                     return (
-                      <div
+                      <motion.div
                         key={bill.id}
-                        className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`bg-white/[0.03] border p-4 rounded-2xl flex items-center justify-between gap-4 transition-all duration-200 hover:bg-white/[0.05] ${
+                          isPaid ? 'border-emerald-500/15' : 'border-white/8 hover:border-yellow-500/20'
+                        }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`p-2.5 rounded-xl border ${
@@ -745,24 +850,26 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
             </div>
           </div>
 
-          {/* RECENT TRANSACTIONS - Blue theme top border */}
-          <div className="bg-slate-900 border border-slate-800 border-t-4 border-t-blue-500 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight mb-6 flex items-center gap-2">
-              <div className="bg-blue-600/10 p-2 rounded-lg border border-blue-500/20 text-blue-400">
-                <Clock className="h-5 w-5" />
+          {/* RECENT TRANSACTIONS */}
+          <div className="glass-card rounded-2xl p-5 border-t-2 border-t-blue-500/50">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="bg-blue-500/10 p-2 rounded-xl border border-blue-500/20 text-blue-400">
+                <Clock className="h-4 w-4" />
               </div>
-              Recent Transactions
-            </h2>
+              <h2 className="text-base font-bold text-slate-100 tracking-tight">Recent Transactions</h2>
+            </div>
 
             {transactions.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl">
-                <p className="text-slate-500 text-sm">No transaction records found.</p>
+              <div className="text-center py-10 border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
+                <Coins className="h-8 w-8 text-slate-700 mx-auto mb-3" />
+                <p className="text-slate-400 text-sm font-medium">No transactions yet</p>
+                <p className="text-xs text-slate-600 mt-1">Fund your wallet to get started.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left text-sm">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <tr className="border-b border-white/5 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                       <th className="pb-3">Activity</th>
                       <th className="pb-3 hidden md:table-cell">Type</th>
                       <th className="pb-3">Token</th>
@@ -770,13 +877,13 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                       <th className="pb-3 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50">
+                  <tbody className="divide-y divide-white/[0.04]">
                     {transactions.slice(0, 10).map((tx) => {
                       const isIncoming = tx.type === "deposit";
                       const amountStr = Number(tx.amount).toFixed(2);
 
                       return (
-                        <tr key={tx.id} className="hover:bg-slate-900/40 transition">
+                        <tr key={tx.id} className="hover:bg-white/[0.03] transition-colors duration-150 rounded-xl">
                           <td className="py-3 flex items-center gap-3">
                             <div className={`p-2 rounded-lg ${
                               isIncoming ? "bg-emerald-950 border border-emerald-500/20 text-emerald-400" : "bg-blue-950 border border-blue-500/20 text-blue-400"
@@ -830,34 +937,35 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       {/* DEPOSIT MODAL */}
       <AnimatePresence>
         {showDepositModal && (
-          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative"
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className="glass-card rounded-3xl w-full max-w-md overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.5)] border-emerald-500/20"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
-                  <ArrowDownLeft className="h-5 w-5 text-emerald-400" /> Fund Your Wallet
+              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                  <ArrowDownLeft className="h-4 w-4 text-emerald-400" /> Fund Your Wallet
                 </h3>
-                <button type="button" onClick={() => setShowDepositModal(false)} className="text-slate-400 hover:text-slate-200">
-                  <X className="h-5 w-5" />
+                <button type="button" onClick={() => setShowDepositModal(false)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition">
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-4 text-sm text-slate-300">
-                <p>
-                  To perform transactions, you can fund your real on-chain address with testnet stablecoins or gas tokens on Celo Sepolia.
+              <div className="px-6 py-5 space-y-4 text-sm text-slate-300">
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Fund your on-chain Celo Sepolia address with testnet stablecoins or gas tokens.
                 </p>
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">Your Celo Sepolia Address</span>
-                  <div className="bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 flex items-center justify-between gap-4 font-mono text-xs max-w-full overflow-hidden">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Your Celo Sepolia Address</span>
+                  <div className="bg-white/[0.04] border border-white/8 rounded-xl px-4 py-3 flex items-center justify-between gap-4 font-mono text-xs overflow-hidden">
                     <span className="truncate text-slate-300 select-all">{user.walletAddress || "0x..."}</span>
                     <button
                       type="button"
                       onClick={copyAddress}
-                      className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition shrink-0"
+                      className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-emerald-400 transition shrink-0"
                       title="Copy Address"
                     >
                       {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
@@ -865,19 +973,21 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                   </div>
                 </div>
                 
-                <div className="pt-4 flex flex-col gap-2">
+                <div className="pt-2 flex flex-col gap-2">
                   <a
                     href="https://faucet.celo.org/celo-sepolia"
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm text-center shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+                    className="w-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold py-2.5 rounded-xl
+                      hover:bg-emerald-500/25 hover:border-emerald-500/70 hover:shadow-[0_0_16px_rgba(44,168,103,0.2)]
+                      transition-all duration-200 text-sm text-center flex items-center justify-center gap-2"
                   >
-                    Open Celo Sepolia Faucet <ArrowUpRight className="h-4 w-4" />
+                    Open Celo Faucet <ArrowUpRight className="h-4 w-4" />
                   </a>
                   <button
                     type="button"
                     onClick={() => setShowDepositModal(false)}
-                    className="w-full bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold py-2.5 rounded-xl transition text-sm border border-slate-700"
+                    className="w-full bg-white/[0.04] hover:bg-white/[0.07] text-slate-300 font-medium py-2.5 rounded-xl transition text-sm border border-white/8"
                   >
                     Close
                   </button>
@@ -888,43 +998,176 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
         )}
       </AnimatePresence>
 
-      {/* CREATE SAVINGS GOAL MODAL */}
+      {/* SWAP / CONVERT MODAL */}
       <AnimatePresence>
-        {showGoalModal && (
-          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
+        {showSwapModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className="glass-card rounded-3xl w-full max-w-md overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.5)] border-yellow-500/20"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-emerald-400" /> Create Savings Goal
+              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-yellow-500 animate-spin-slow" /> Swap / Convert Assets
                 </h3>
-                <button type="button" onClick={() => setShowGoalModal(false)} className="text-slate-400 hover:text-slate-200">
-                  <X className="h-5 w-5" />
+                <button type="button" onClick={() => setShowSwapModal(false)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition">
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateGoalSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSwapSubmit} className="px-6 py-5 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="swapFromToken" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      From Token
+                    </label>
+                    <select
+                      id="swapFromToken"
+                      value={swapFromToken}
+                      onChange={(e) => {
+                        setSwapFromToken(e.target.value);
+                        if (e.target.value === swapToToken) {
+                          setSwapToToken(e.target.value === "CELO" ? "cUSD" : "CELO");
+                        }
+                      }}
+                      className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
+                    >
+                      <option value="CELO">CELO ({balances.celo.toFixed(4)})</option>
+                      <option value="cUSD">USDm / cUSD ({balances.cUSD.toFixed(2)})</option>
+                      <option value="USDC">USDC ({balances.usdc.toFixed(2)})</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="swapToToken" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      To Token
+                    </label>
+                    <select
+                      id="swapToToken"
+                      value={swapToToken}
+                      onChange={(e) => {
+                        setSwapToToken(e.target.value);
+                        if (e.target.value === swapFromToken) {
+                          setSwapFromToken(e.target.value === "CELO" ? "cUSD" : "CELO");
+                        }
+                      }}
+                      className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
+                    >
+                      <option value="cUSD">USDm / cUSD ({balances.cUSD.toFixed(2)})</option>
+                      <option value="CELO">CELO ({balances.celo.toFixed(4)})</option>
+                      <option value="USDC">USDC ({balances.usdc.toFixed(2)})</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label htmlFor="goalTitle" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="swapAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    Amount to Swap
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="swapAmount"
+                      type="number"
+                      step="any"
+                      placeholder="0.00"
+                      value={swapAmount}
+                      onChange={(e) => setSwapAmount(e.target.value)}
+                      className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (swapFromToken === "CELO") setSwapAmount(String(balances.celo));
+                        if (swapFromToken === "cUSD") setSwapAmount(String(balances.cUSD));
+                        if (swapFromToken === "USDC") setSwapAmount(String(balances.usdc));
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-slate-400 hover:text-slate-200 transition"
+                    >
+                      MAX
+                    </button>
+                  </div>
+                </div>
+
+                {swapAmount && !Number.isNaN(Number(swapAmount)) && Number(swapAmount) > 0 && (
+                  <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-1 text-slate-400">
+                    <div className="flex justify-between">
+                      <span>Rate:</span>
+                      <span>1 CELO ≈ 0.85 USDm</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-slate-200">
+                      <span>Estimated Output:</span>
+                      <span>
+                        {(Number(swapAmount) * (swapFromToken === "CELO" ? 0.85 : 1 / 0.85)).toFixed(4)}{" "}
+                        {swapToToken}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSwapping}
+                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold py-2.5 rounded-xl
+                      disabled:opacity-50 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                  >
+                    {isSwapping ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" /> Swapping on Celo...
+                      </>
+                    ) : (
+                      "Confirm Swap"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* CREATE SAVINGS GOAL MODAL */}
+      <AnimatePresence>
+        {showGoalModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className="glass-card rounded-3xl w-full max-w-md overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.5)] border-emerald-500/20"
+            >
+              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" /> New Savings Goal
+                </h3>
+                <button type="button" onClick={() => setShowGoalModal(false)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateGoalSubmit} className="px-6 py-5 space-y-4">
+                <div>
+                  <label htmlFor="goalTitle" className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                     Goal Name
                   </label>
                   <input
                     id="goalTitle"
                     type="text"
-                    placeholder="e.g. Rainy Day Fund, Holiday Trip"
+                    placeholder="e.g. Holiday Trip, Rainy Day Fund"
                     value={goalTitle}
                     onChange={(e) => setGoalTitle(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="goalTargetAmount" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="goalTargetAmount" className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                     Target Amount (USDm)
                   </label>
                   <input
@@ -933,13 +1176,13 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     placeholder="Target in stablecoins"
                     value={goalTargetAmount}
                     onChange={(e) => setGoalTargetAmount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="goalTargetDate" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="goalTargetDate" className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                     Target Date
                   </label>
                   <input
@@ -947,15 +1190,17 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     type="date"
                     value={goalTargetDate}
                     onChange={(e) => setGoalTargetDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                     required
                   />
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     type="submit"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/25"
+                    className="w-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold py-2.5 rounded-xl
+                      hover:bg-emerald-500/25 hover:border-emerald-500/70 hover:shadow-[0_0_16px_rgba(44,168,103,0.2)]
+                      transition-all duration-200 text-sm"
                   >
                     Create Savings Goal
                   </button>
@@ -969,23 +1214,24 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       {/* CREATE BILL MODAL */}
       <AnimatePresence>
         {showBillModal && (
-          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className="glass-card rounded-3xl w-full max-w-md overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.5)] border-yellow-500/20"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-emerald-400" /> Add Upcoming Bill
+              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-yellow-400" /> Add Upcoming Bill
                 </h3>
-                <button type="button" onClick={() => setShowBillModal(false)} className="text-slate-400 hover:text-slate-200">
-                  <X className="h-5 w-5" />
+                <button type="button" onClick={() => setShowBillModal(false)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition">
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateBillSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleCreateBillSubmit} className="px-6 py-5 space-y-4">
                 <div>
                   <label htmlFor="billTitle" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                     Bill Title
@@ -996,7 +1242,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     placeholder="e.g. Netflix, Electricity, Rent"
                     value={billTitle}
                     onChange={(e) => setBillTitle(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                     required
                   />
                 </div>
@@ -1011,7 +1257,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     placeholder="Amount to pay"
                     value={billAmount}
                     onChange={(e) => setBillAmount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                     required
                   />
                 </div>
@@ -1025,7 +1271,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     type="date"
                     value={billDueDate}
                     onChange={(e) => setBillDueDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                     required
                   />
                 </div>
@@ -1038,7 +1284,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     id="billFrequency"
                     value={billFrequency}
                     onChange={(e) => setBillFrequency(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-200"
                   >
                     <option value="monthly">Monthly</option>
                     <option value="weekly">Weekly</option>
@@ -1047,10 +1293,12 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                   </select>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     type="submit"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/25"
+                    className="w-full bg-yellow-500/15 border border-yellow-500/40 text-yellow-400 font-semibold py-2.5 rounded-xl
+                      hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_16px_rgba(251,204,92,0.15)]
+                      transition-all duration-200 text-sm"
                   >
                     Add Bill to Planner
                   </button>
@@ -1064,32 +1312,33 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
         {showLogoutModal && (
-          <div className="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className="glass-card rounded-3xl w-full max-w-sm overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
             >
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-                <h3 className="font-extrabold text-slate-100 flex items-center gap-2">
-                  <LogOut className="h-5 w-5 text-yellow-500" /> Confirm Logout
+              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+                <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                  <LogOut className="h-4 w-4 text-yellow-400" /> Confirm Logout
                 </h3>
-                <button type="button" onClick={() => setShowLogoutModal(false)} className="text-slate-400 hover:text-slate-200">
-                  <X className="h-5 w-5" />
+                <button type="button" onClick={() => setShowLogoutModal(false)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition">
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
-                <p className="text-sm text-slate-300">
+              <div className="px-6 py-5 space-y-5">
+                <p className="text-sm text-slate-400 leading-relaxed">
                   Are you sure you want to log out of your Paycon account?
                 </p>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setShowLogoutModal(false)}
-                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl transition text-sm border border-slate-700"
+                    className="flex-1 bg-white/[0.04] hover:bg-white/[0.07] text-slate-300 font-medium py-2.5 rounded-xl transition text-sm border border-white/8"
                   >
                     Cancel
                   </button>
@@ -1099,7 +1348,8 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                       setShowLogoutModal(false);
                       handleSignOut();
                     }}
-                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-sm shadow-lg shadow-yellow-500/25"
+                    className="flex-1 bg-yellow-500/15 border border-yellow-500/40 text-yellow-400 font-semibold py-2.5 rounded-xl
+                      hover:bg-yellow-500/25 hover:border-yellow-500/60 transition-all duration-200 text-sm"
                   >
                     Logout
                   </button>
