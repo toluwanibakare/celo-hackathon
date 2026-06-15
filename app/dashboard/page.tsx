@@ -11,7 +11,7 @@ export default async function Page() {
   const session = await auth();
 
   if (!session || !session.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;

@@ -150,7 +150,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
     try {
       await logout();
       toast.success("Logged out successfully");
-      router.push("/login");
+      router.push("/");
       router.refresh();
     } catch (e) {
       toast.error("Logout failed");
