@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     const rate = fromToken.toUpperCase() === "CELO" ? 0.85 : 1 / 0.85;
     const destAmount = Number(amount) * rate;
 
-    let txHash = "";
+    let txHash: `0x${string}` = "0x";
 
     if (fromToken.toUpperCase() === "CELO") {
       // User is selling CELO for cUSD or USDC
