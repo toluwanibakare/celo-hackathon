@@ -57,7 +57,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   };
 
   // Dashboard state
-  const [balances, setBalances] = useState({ cUSD: 0, usdc: 0 });
+  const [balances, setBalances] = useState({ cUSD: 0, usdc: 0, celo: 0 });
   const [goals, setGoals] = useState<any[]>([]);
   const [bills, setBills] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -90,7 +90,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
       const balRes = await fetch(`/api/paycon/balance?userId=${user.id}`);
       const balData = await balRes.json();
       if (balRes.ok) {
-        setBalances({ cUSD: balData.cUSD || 0, usdc: balData.usdc || 0 });
+        setBalances({ cUSD: balData.cUSD || 0, usdc: balData.usdc || 0, celo: balData.celo || 0 });
       }
 
       // Savings Goals
@@ -455,7 +455,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-2 px-1">
+                  <div className="grid grid-cols-3 gap-3 mt-2 px-1">
                     <div>
                       <span className="text-[8px] text-slate-400 uppercase font-extrabold tracking-wider block">USDm Balance</span>
                       <p className="text-base md:text-lg font-black text-emerald-400 mt-0.5">${balances.cUSD.toFixed(2)}</p>
@@ -463,6 +463,10 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     <div>
                       <span className="text-[8px] text-slate-400 uppercase font-extrabold tracking-wider block">USDC Balance</span>
                       <p className="text-base md:text-lg font-black text-blue-400 mt-0.5">${balances.usdc.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <span className="text-[8px] text-slate-400 uppercase font-extrabold tracking-wider block">CELO Balance</span>
+                      <p className="text-base md:text-lg font-black text-yellow-400 mt-0.5">{balances.celo.toFixed(4)}</p>
                     </div>
                   </div>
 
