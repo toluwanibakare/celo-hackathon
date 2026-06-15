@@ -38,7 +38,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_AI_AGENT_WHATSAPP || "+2348026322742";
+  const whatsappNumber = "+15556698050";
   const cleanWhatsappNumber = whatsappNumber.replace(/\D/g, "");
   const whatsappUrl = `https://wa.me/${cleanWhatsappNumber}`;
 
