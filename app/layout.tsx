@@ -3,6 +3,7 @@ import { ThirdwebClientProvider } from "@/components/thirdweb-client-provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { Suspense } from "react";
 
 import "./globals.css";
 
@@ -77,7 +78,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
-          <ThirdwebClientProvider>{children}</ThirdwebClientProvider>
+          <ThirdwebClientProvider>
+            <Suspense fallback={null}>
+              {children}
+            </Suspense>
+          </ThirdwebClientProvider>
         </ThemeProvider>
       </body>
     </html>
