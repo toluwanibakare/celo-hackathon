@@ -1,6 +1,7 @@
 "use client";
 
 import Form from 'next/form';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Eye, EyeOff, Check, Globe } from 'lucide-react';
 import { Input } from './ui/input';
@@ -25,6 +26,8 @@ export function AuthForm({
   defaultEmail = '',
   showPhoneNumber = false,
   showStrengthRules = false,
+  showForgotPassword = false,
+  onForgotPasswordClick,
 }: {
   action: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
@@ -33,6 +36,8 @@ export function AuthForm({
   defaultEmail?: string;
   showPhoneNumber?: boolean;
   showStrengthRules?: boolean;
+  showForgotPassword?: boolean;
+  onForgotPasswordClick?: () => void;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
@@ -115,12 +120,32 @@ export function AuthForm({
 
       {/* PASSWORD FIELD WITH VISIBILITY TOGGLE */}
       <div className="flex flex-col gap-2">
-        <Label
-          htmlFor="password"
-          className="text-slate-400 font-semibold text-xs uppercase tracking-wider"
-        >
-          Password
-        </Label>
+        <div className="flex justify-between items-center">
+          <Label
+            htmlFor="password"
+            className="text-slate-400 font-semibold text-xs uppercase tracking-wider"
+          >
+            Password
+          </Label>
+          {showForgotPassword && (
+            onForgotPasswordClick ? (
+              <button
+                type="button"
+                onClick={onForgotPasswordClick}
+                className="text-emerald-400 hover:text-emerald-300 transition text-xs font-semibold focus:outline-none"
+              >
+                Forgot password?
+              </button>
+            ) : (
+              <Link
+                href="/forgot-password"
+                className="text-emerald-400 hover:text-emerald-300 transition text-xs font-semibold"
+              >
+                Forgot password?
+              </Link>
+            )
+          )}
+        </div>
         <div className="relative">
           <Input
             id="password"

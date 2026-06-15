@@ -102,6 +102,16 @@ export const mockDb = {
     return user || null;
   },
 
+  updateUserPassword: (email: string, passwordHash: string) => {
+    const db = initMockDb();
+    const user = db.users.find((u) => u.email === email);
+    if (user) {
+      user.password = passwordHash;
+      saveMockDb(db);
+    }
+    return user || null;
+  },
+
   getOrCreateUserByWalletAddress: (walletAddress: string) => {
     const db = initMockDb();
     let user = db.users.find((u) => u.walletAddress?.toLowerCase() === walletAddress.toLowerCase());

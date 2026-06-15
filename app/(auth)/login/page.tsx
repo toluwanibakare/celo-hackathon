@@ -7,6 +7,7 @@ import { toast } from '@/components/toast';
 
 import { AuthForm } from '@/components/auth-form';
 import { SubmitButton } from '@/components/submit-button';
+import { ForgotPasswordModal } from '@/components/forgot-password-modal';
 
 import { login, type LoginActionState } from '../actions';
 
@@ -15,6 +16,7 @@ export default function Page() {
 
   const [email, setEmail] = useState('');
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const [state, formAction] = useActionState<LoginActionState, FormData>(
     login,
@@ -70,7 +72,12 @@ export default function Page() {
           </div>
         </div>
 
-        <AuthForm action={handleSubmit} defaultEmail={email}>
+        <AuthForm
+          action={handleSubmit}
+          defaultEmail={email}
+          showForgotPassword={true}
+          onForgotPasswordClick={() => setIsForgotPasswordOpen(true)}
+        >
           <div className="pt-2">
             <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
           </div>
@@ -86,6 +93,11 @@ export default function Page() {
           </p>
         </AuthForm>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </div>
   );
 }

@@ -23,8 +23,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Missing email or purpose" }, { status: 400 });
       }
 
-      // Generate a random 6 digit number
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate a random 4 digit number
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
       await createOTP(email, code, purpose);
 
       // Send the OTP via Gmail SMTP

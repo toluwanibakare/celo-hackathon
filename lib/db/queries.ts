@@ -576,6 +576,21 @@ export async function updateUserWallet(userId: string, address: string, privateK
   }
 }
 
+export async function updateUserPassword(email: string, passwordHash: string): Promise<User | null> {
+  if (!db) return mockDb.updateUserPassword(email, passwordHash);
+  try {
+    const [updatedUser] = await db
+      .update(user)
+      .set({ password: passwordHash })
+      .where(eq(user.email, email))
+      .returning();
+    return updatedUser || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+
 export async function getSavingsGoals(userId: string): Promise<Array<SavingsGoal>> {
   if (!db) return mockDb.getSavingsGoals(userId) as any;
   try {
