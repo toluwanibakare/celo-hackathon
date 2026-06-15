@@ -85,6 +85,10 @@ export const mockDb = {
       walletAddress: walletAddress || null,
       phoneNumber: phoneNumber || null,
       walletPrivateKey: walletPrivateKey || null,
+      balanceCUSD: "0",
+      balanceUSDC: "0",
+      balanceCELO: "0",
+      balanceUpdatedAt: null,
     };
     db.users.push(newUser);
     saveMockDb(db);
