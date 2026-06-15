@@ -21,27 +21,35 @@ export async function GET(request: Request) {
 
     // Fetch live on-chain balances from Celo Sepolia
     const onChain = await getStablecoinBalances(userData.walletAddress || "");
-
-    // Fetch all transaction records to compute adjustments for simulated swap deposits
+ 
+    // Fetch all transaction records to compute adjustments for simulated swap deposits and withdrawals
     const txs = await getTransactions(userData.id);
     const swapAdjustments = { cUSD: 0, usdc: 0, celo: 0 };
     for (const tx of txs) {
-      if (tx.type === "deposit" && tx.description?.startsWith("Swap: Received")) {
+      const descLower = tx.description?.toLowerCase() || "";
+      const isSwap = descLower.includes("swap");
+      const isDeposit = tx.type === "deposit" && descLower.includes("received");
+      const isWithdrawal = tx.type === "withdrawal" && descLower.includes("sold");
+
+      if (isSwap && (isDeposit || isWithdrawal)) {
         const tokenUpper = tx.token.toUpperCase();
         const amt = Number(tx.amount);
+        const direction = isDeposit ? 1 : -1;
+        
         if (tokenUpper === "CUSD" || tokenUpper === "USDM") {
-          swapAdjustments.cUSD += amt;
+          swapAdjustments.cUSD += amt * direction;
         } else if (tokenUpper === "USDC") {
-          swapAdjustments.usdc += amt;
+          swapAdjustments.usdc += amt * direction;
         } else if (tokenUpper === "CELO") {
-          swapAdjustments.celo += amt;
+          swapAdjustments.celo += amt * direction;
         }
       }
     }
 
-    const finalCUSD = onChain.cUSD + swapAdjustments.cUSD;
-    const finalUSDC = onChain.usdc + swapAdjustments.usdc;
-    const finalCELO = onChain.celo + swapAdjustments.celo;
+    // Adjust balances, ensuring they do not drop below zero
+    const finalCUSD = Math.max(0, onChain.cUSD + swapAdjustments.cUSD);
+    const finalUSDC = Math.max(0, onChain.usdc + swapAdjustments.usdc);
+    const finalCELO = Math.max(0, onChain.celo + swapAdjustments.celo);
 
     // ✅ Persist the balance snapshot to the DB (fire-and-forget, non-blocking)
     updateUserBalance(userData.id, {
