@@ -11,9 +11,10 @@ const erc20Abi = parseAbi([
   "function transfer(address to, uint256 value) returns (bool)",
 ]);
 
+// Use a 10-second timeout so balance calls don't hang on a slow/rate-limited node
 const publicClient = createPublicClient({
   chain: celoSepolia,
-  transport: http("https://forno.celo-sepolia.celo-testnet.org"), // Celo Sepolia RPC
+  transport: http("https://forno.celo-sepolia.celo-testnet.org", { timeout: 10_000 }),
 });
 
 /**
@@ -80,8 +81,10 @@ export async function getStablecoinBalances(address: string) {
     return {
       cUSD: 0,
       usdc: 0,
+      celo: 0,
       cUSDRaw: "0",
       usdcRaw: "0",
+      celoRaw: "0",
     };
   }
 }

@@ -35,9 +35,10 @@ export async function GET(request: Request) {
     if (walletAddress && walletAddress.startsWith("0x")) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
-        const blockscoutUrl = `https://celo-sepolia.blockscout.com/api?module=account&action=tokentx&address=${walletAddress}`;
+        // Fetch ERC-20 token transfers (cUSD / USDC)
+        const blockscoutUrl = `https://celo-sepolia.blockscout.com/api?module=account&action=tokentx&address=${walletAddress}&page=1&offset=50&sort=desc`;
         const response = await fetch(blockscoutUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
 
@@ -74,6 +75,39 @@ export async function GET(request: Request) {
                   createdAt: new Date(timeStamp * 1000).toISOString(),
                 });
               }
+            }
+          }
+        }
+
+        // Also fetch native CELO transfers
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 8000);
+        const nativeTxUrl = `https://celo-sepolia.blockscout.com/api?module=account&action=txlist&address=${walletAddress}&page=1&offset=50&sort=desc`;
+        const nativeRes = await fetch(nativeTxUrl, { signal: controller2.signal });
+        clearTimeout(timeoutId2);
+
+        if (nativeRes.ok) {
+          const nativeData = await nativeRes.json();
+          if (nativeData.status === "1" && Array.isArray(nativeData.result)) {
+            for (const item of nativeData.result as any[]) {
+              const hash = item.hash;
+              const from = (item.from || "").toLowerCase();
+              const to = (item.to || "").toLowerCase();
+              const value = item.value || "0";
+              const timeStamp = Number(item.timeStamp || "0");
+              const amountCelo = Number(value) / 1e18;
+              if (amountCelo === 0) continue; // skip zero-value txs
+              const isIncoming = to === walletAddress.toLowerCase();
+              onChainTxs.push({
+                id: `onchain-native-${hash}`,
+                type: isIncoming ? "deposit" : "withdrawal",
+                amount: String(amountCelo),
+                token: "CELO",
+                status: "completed",
+                txHash: hash,
+                description: isIncoming ? "Received CELO" : "Sent CELO",
+                createdAt: new Date(timeStamp * 1000).toISOString(),
+              });
             }
           }
         }
