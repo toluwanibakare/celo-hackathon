@@ -24,7 +24,7 @@ export const payconTools = ({ session }: PayconToolsProps) => {
 
   return {
     getWalletDetails: tool({
-      description: "Get the user's Celo wallet address and current stablecoin balances (cUSD and USDC), including simulated transactions.",
+      description: "Get the user's Celo wallet address and current stablecoin balances (cUSD and USDC) on Celo Sepolia.",
       inputSchema: z.object({}),
       execute: async () => {
         if (!userId || userId === "public-user") {
@@ -39,40 +39,11 @@ export const payconTools = ({ session }: PayconToolsProps) => {
         // Get on-chain balance
         const onChain = await getStablecoinBalances(userData.walletAddress || "");
 
-        // Get simulated transaction offset
-        const txs = await getTransactions(userData.id);
-        let cUSDOffset = 0;
-        let usdcOffset = 0;
-
-        for (const tx of txs) {
-          const amt = Number(tx.amount);
-          if (tx.status === "completed" && !tx.txHash) {
-            if (tx.type === "deposit") {
-              if (tx.token === "cUSD") cUSDOffset += amt;
-              else if (tx.token === "USDC") usdcOffset += amt;
-            } else {
-              if (tx.token === "cUSD") cUSDOffset -= amt;
-              else if (tx.token === "USDC") usdcOffset -= amt;
-            }
-          }
-        }
-
-        const totalCUSD = Math.max(0, onChain.cUSD + cUSDOffset);
-        const totalUSDC = Math.max(0, onChain.usdc + usdcOffset);
-
         return {
           walletAddress: userData.walletAddress,
           balances: {
-            cUSD: totalCUSD,
-            usdc: totalUSDC,
-          },
-          onChain: {
             cUSD: onChain.cUSD,
             usdc: onChain.usdc,
-          },
-          simulatedOffset: {
-            cUSD: cUSDOffset,
-            usdc: usdcOffset,
           },
         };
       },

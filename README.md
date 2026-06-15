@@ -1,95 +1,75 @@
-# Celo AI Agent
+# Paycon - AI-Driven Stablecoin Savings & Automated Bill Manager
 
-An intelligent AI assistant for interacting with the Celo blockchain ecosystem. This application provides a conversational interface to help users navigate Celo blockchain operations, smart contracts, and DeFi protocols through natural language interactions.
+Paycon is a premium Web3 fintech application built on **Celo Sepolia** that combines automated, yield-bearing stablecoin savings goals, scheduling and executing real-world bill payments on-chain, and an AI-powered financial coach accessible both via a web dashboard and **WhatsApp**.
 
-## Features
+---
 
-- **Multi-Model AI Support**: Integrates with multiple AI providers (OpenAI, Anthropic, Google, Mistral, DeepSeek, xAI)
-- **Wallet Integration**: Connect and manage Celo wallet addresses
-- **Interactive Chat Interface**: Real-time conversations with AI models
-- **Artifact Generation**: Create and edit code, documents, and data visualizations
-- **User Authentication**: Secure login and guest access
-- **Chat History**: Persistent conversation storage and retrieval
-- **File Upload Support**: Process and analyze uploaded documents
+## 🚀 What is Paycon & How It Works
 
-## Getting Started
+Paycon enables users to manage their digital assets with premium UX:
+1. **ATM-style Celo Wallet Card:** A responsive 3D-flipping ATM card displaying the user's Celo Sepolia address (printed like a card number), EMV chip details, live on-chain balances (**USDm** and **USDC**), and actions.
+2. **Segregated Savings Goal Vaults:** Every savings goal created automatically spins up its own dedicated Celo wallet serving as an on-chain vault. The AI agent can contribute stablecoins from the user's main wallet directly to these vault addresses on-chain.
+3. **On-chain Bill Payments:** Schedule bills and pay them on-chain using Celo's ultra-low gas fees and fast block times (~1 second).
+4. **WhatsApp AI Financial Coach (via n8n):** Users can chat with their financial coach, query balances, create goals, contribute to savings, and pay bills in natural language using WhatsApp.
 
-1. **Install dependencies:**
+---
 
-   ```bash
-   pnpm install
-   ```
+## 🛠️ Tech Stack
 
-2. **Set up environment variables:**
-   Create a `.env.local` file with your API keys:
+- **Frontend/Backend:** Next.js 15 (App Router) with TypeScript
+- **Database Layer:** PostgreSQL with Drizzle ORM
+- **Cloud Database:** Supabase (PG Connection Pooling via AWS Pooler)
+- **On-chain Interactions:** Viem & Thirdweb SDKs (Celo Sepolia Testnet)
+- **Email Service:** Nodemailer (Gmail SMTP) for OTP & transaction receipts
+- **AI Orchestration & Automations:** **n8n** workflows handling the WhatsApp message routing, user session state, tools invocation, and stablecoin transactions
+- **Chat Interface:** WhatsApp Business Cloud API (Meta Developer Platform)
 
-   ```env
-   # AI Provider API Keys (at least one required)
-   OPENAI_API_KEY=your_openai_key
-   ANTHROPIC_API_KEY=your_anthropic_key
-   GOOGLE_GENERATIVE_AI_API_KEY=your_google_key
+---
 
-   # Database
-   POSTGRES_URL=your_postgres_connection_string
+## 💬 Chatting with Paycon on WhatsApp (MVP Whitelisting)
 
-   # Authentication
-   AUTH_SECRET=your_auth_secret
-   ```
+For the MVP, we are using a **sandbox/test number** from Meta. To interact with Paycon on WhatsApp:
 
-3. **Run database migrations:**
+1. Send a message containing any text on WhatsApp to the sandbox number: **`+2348026322742`**.
+2. Meta requires you to send this initial message to whitelist your phone number for receiving inbound messages from the sandbox sender.
+3. Once whitelisted, the AI Agent will respond and guide you through tracking your savings and executing bills.
 
-   ```bash
-   pnpm db:migrate
-   ```
+---
 
-4. **Start the development server:**
+## ⚙️ Getting Started
 
-   ```bash
-   pnpm dev
-   ```
-
-5. **Open [http://localhost:3000](http://localhost:3000) in your browser**
-
-## Project Structure
-
-```
-apps/web/
-├── app/                    # Next.js App Router pages
-│   ├── (auth)/            # Authentication routes
-│   └── (chat)/            # Chat interface and API routes
-├── components/            # React components
-├── lib/                   # Utilities and configurations
-│   ├── ai/               # AI model providers and configurations
-│   └── db/               # Database schemas and queries
-└── artifacts/            # AI-generated artifact handlers
+### 1. Install Dependencies
+```bash
+pnpm install
 ```
 
-## Available Scripts
+### 2. Set Up Environment Variables
+Create a `.env.local` or `.env` file in the root directory:
+```env
+# Database Credentials
+DATABASE_URL="postgresql://postgres:[PASSWORD]@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require&prepare=false"
+POSTGRES_URL="postgresql://postgres:[PASSWORD]@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require&prepare=false"
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build the application
-- `pnpm start` - Start production server
-- `pnpm lint` - Run linting
-- `pnpm db:migrate` - Run database migrations
-- `pnpm db:studio` - Open database studio
-- `pnpm test` - Run tests
+# AI Provider Keys
+OPENAI_API_KEY=your_openai_key
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_key
 
-## Tech Stack
+# Authentication
+AUTH_SECRET=your_auth_secret
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
-- **Styling**: Tailwind CSS
-- **UI Components**: Radix UI primitives
-- **Authentication**: NextAuth.js
-- **AI Integration**: Multiple provider support
-- **Blockchain**: Celo integration via Thirdweb and Viem
+# SMTP Email Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-gmail-app-password
 
-## Configuration
+# WhatsApp AI Agent Config
+NEXT_PUBLIC_AI_AGENT_WHATSAPP=+2348026322742
+```
 
-The application supports multiple AI providers. Configure your preferred providers by setting the corresponding environment variables. The system will automatically detect available providers and enable them in the interface.
-
-## Learn More
-
-- [Celo Documentation](https://docs.celo.org/)
-- [Celo Developer Resources](https://developers.celo.org/)
+### 3. Start Development Server
+```bash
+pnpm dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
