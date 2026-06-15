@@ -142,7 +142,7 @@ export function AuthForm({
       </div>
 
       {/* DYNAMIC PASSWORD STRENGTH RULES */}
-      {showStrengthRules && (
+      {showStrengthRules && password.length > 0 && (
         <div className="text-xs space-y-1.5 p-3 rounded-xl bg-slate-950 border border-slate-900">
           <p className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">
             Security Requirements:

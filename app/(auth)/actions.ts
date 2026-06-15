@@ -77,7 +77,8 @@ export const register = async (
   try {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const phoneNumber = formData.get("phoneNumber") as string;
+    const rawPhoneNumber = formData.get("phoneNumber") as string;
+    const phoneNumber = rawPhoneNumber && rawPhoneNumber.trim() !== "" ? rawPhoneNumber.trim() : undefined;
 
     const validatedData = authFormSchema.parse({
       email,

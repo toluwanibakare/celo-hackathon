@@ -53,7 +53,7 @@ let client: any = null;
 
 if (!isMockMode) {
   try {
-    client = postgres(dbUrl as string);
+    client = postgres(dbUrl as string, { prepare: false });
     db = drizzle(client);
   } catch (error) {
     console.warn("Database connection failed, falling back to mock mode:", error);

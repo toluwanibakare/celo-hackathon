@@ -49,7 +49,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex h-dvh w-screen items-center justify-center bg-slate-950 text-slate-100 p-4 relative overflow-hidden">
+    <div className="flex min-h-screen w-screen items-center justify-center bg-slate-950 text-slate-100 p-4 py-12 relative overflow-y-auto">
       {/* Premium Fintech Glow Background */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
