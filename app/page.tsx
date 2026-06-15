@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { WalletAuthButton } from "@/components/WalletAuthButton";
 import {
   Wallet,
-  Bot,
+  BrainCircuit,
   TrendingUp,
   Shield,
   Zap,
@@ -96,11 +96,12 @@ function FeatureCard({ icon: Icon, title, description, color, delay, gradient }:
       whileHover={{ y: -6, scale: 1.02 }}
       className="relative group cursor-default"
     >
+      {/* Background glow — behind card content */}
       <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-xl -z-10"
         style={{ background: gradient }}
       />
-      <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-6 h-full overflow-hidden group-hover:border-white/20 transition-all duration-300">
+      <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-6 h-full overflow-hidden group-hover:border-white/25 transition-all duration-300">
         {/* Top shimmer */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
@@ -112,12 +113,12 @@ function FeatureCard({ icon: Icon, title, description, color, delay, gradient }:
           <Icon className="h-6 w-6 text-slate-950" />
         </div>
 
-        <h3 className="text-lg font-bold text-slate-100 mb-2">{title}</h3>
-        <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+        <h3 className="text-lg font-bold text-slate-100 mb-2 relative z-10">{title}</h3>
+        <p className="text-sm text-slate-300 leading-relaxed relative z-10">{description}</p>
 
         {/* Hover glow corner */}
         <div
-          className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-2xl"
+          className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-500 blur-2xl"
           style={{ background: color }}
         />
       </div>
@@ -142,7 +143,7 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: Bot,
+      icon: BrainCircuit,
       title: "AI Financial Coach",
       description: "Get personalized financial advice powered by cutting-edge AI. Your smart money mentor available 24/7 on Celo.",
       color: "#2CA867",
@@ -260,9 +261,15 @@ export default function LandingPage() {
               <img src="/images/logo.png" alt="Paycon" className="w-full h-full object-contain" />
             </div>
           </div>
-          <span className="text-xl font-extrabold tracking-tight">
-            Pay<span className="text-yellow-400">con</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-extrabold tracking-tight">
+              Pay<span className="text-yellow-400">con</span>
+            </span>
+            <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Celo Sepolia
+            </span>
+          </div>
         </div>
 
         {/* Nav links */}
@@ -270,10 +277,6 @@ export default function LandingPage() {
           <a href="#features" className="hover:text-slate-100 transition">Features</a>
           <a href="#how-it-works" className="hover:text-slate-100 transition">How it works</a>
           <a href="#stats" className="hover:text-slate-100 transition">Stats</a>
-          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Celo Sepolia
-          </span>
         </div>
 
         {/* CTA */}
@@ -337,17 +340,9 @@ export default function LandingPage() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <WalletAuthButton
-              label="🚀 Launch App — Connect Wallet"
+              label="Launch App — Connect Wallet"
               className="scale-110"
             />
-
-            <a
-              href="#features"
-              className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition text-sm font-medium group"
-            >
-              Learn more
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </a>
           </motion.div>
 
           {/* Trust badges */}
@@ -405,8 +400,8 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: 1200, suffix: "+", label: "Wallets Connected", color: "#FBCC5C" },
-              { value: 8400, suffix: "+", label: "Transactions Tracked", color: "#2CA867" },
+              { value: 5000, suffix: "+", label: "Active Accounts", color: "#FBCC5C" },
+              { value: 25000, suffix: "+", label: "Automated Transactions", color: "#2CA867" },
               { value: 99, suffix: "%", label: "Uptime", color: "#60a5fa" },
               { value: 5, suffix: "s", label: "Avg Response Time", color: "#f472b6" },
             ].map(({ value, suffix, label, color }, i) => (
@@ -558,7 +553,7 @@ export default function LandingPage() {
             {/* Inner shimmer */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/50 to-transparent" />
 
-            <div className="text-5xl mb-6">🚀</div>
+            <Sparkles className="h-12 w-12 text-yellow-400 mx-auto mb-6 animate-pulse" />
             <h2 className="text-4xl md:text-5xl font-black text-slate-100 mb-4">
               Ready to take control?
             </h2>
@@ -568,7 +563,7 @@ export default function LandingPage() {
             <WalletAuthButton label="Connect Wallet — It's Free" className="justify-center" />
 
             <p className="text-xs text-slate-600 mt-6">
-              No email. No password. Just your wallet. 🔐
+              No email. No password. Just your wallet.
             </p>
           </motion.div>
         </div>

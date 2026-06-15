@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Wallet, Loader2, AlertCircle } from "lucide-react";
 
-const CELO_SEPOLIA_CHAIN_ID = "0xaef3"; // 44787 in hex
+const CELO_SEPOLIA_CHAIN_ID = "0xaa044c"; // 11155456 decimal — Celo Sepolia
 
 async function switchToCeloSepolia() {
   const ethereum = (window as any).ethereum;
@@ -25,14 +25,14 @@ async function switchToCeloSepolia() {
           params: [
             {
               chainId: CELO_SEPOLIA_CHAIN_ID,
-              chainName: "Celo Alfajores Testnet",
+              chainName: "Celo Sepolia Testnet",
               nativeCurrency: {
                 name: "CELO",
                 symbol: "CELO",
                 decimals: 18,
               },
-              rpcUrls: ["https://alfajores-forno.celo-testnet.org"],
-              blockExplorerUrls: ["https://alfajores.celoscan.io"],
+              rpcUrls: ["https://forno.celo-sepolia.celo-testnet.org"],
+              blockExplorerUrls: ["https://celo-sepolia.blockscout.com"],
             },
           ],
         });
@@ -85,7 +85,7 @@ export function WalletAuthButton({ className = "", label = "Connect Wallet" }: W
       // Switch to Celo Sepolia
       const switched = await switchToCeloSepolia();
       if (!switched) {
-        setError("Please switch your wallet to Celo Alfajores Testnet manually.");
+        setError("Please switch your wallet to Celo Sepolia Testnet manually.");
         setIsConnecting(false);
         return;
       }

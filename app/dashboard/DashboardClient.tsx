@@ -19,7 +19,7 @@ import {
   X,
   CreditCard,
   AlertCircle,
-  MessageCircle,
+  BrainCircuit,
   RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
@@ -350,19 +350,23 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
           <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden shadow-lg border border-yellow-400/25 bg-yellow-400 flex-shrink-0 flex items-center justify-center p-0.5 animate-gold-glow">
             <img src="/images/logo.png" alt="Paycon Logo" className="w-full h-full object-contain scale-110" />
           </div>
-          <div>
+          <div className="flex items-center gap-2 md:gap-3">
             <h1 className="text-lg md:text-xl font-black tracking-tight gradient-text-green">
               Paycon
             </h1>
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Stablecoin Savings</p>
-              <span className={`inline-flex items-center gap-1 text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider border ${
-                isMock ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              }`} title={isMock ? "Running in local storage mock mode." : "Connected to secure cloud vault storage."}>
-                <span className={`w-1 h-1 rounded-full inline-block ${isMock ? 'bg-yellow-400' : 'bg-emerald-400 animate-pulse'}`} />
-                {isMock ? "Local Mode" : "Live"}
-              </span>
-            </div>
+            <span className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse inline-block" />
+              Celo Sepolia
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 md:gap-2 mt-0.5">
+            <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">Fintech Savings</p>
+            <span className={`inline-flex items-center gap-1 text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider border ${
+              isMock ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            }`} title={isMock ? "Running in local storage mock mode." : "Connected to secure cloud vault storage."}>
+              <span className={`w-1 h-1 rounded-full inline-block ${isMock ? 'bg-yellow-400' : 'bg-emerald-400 animate-pulse'}`} />
+              {isMock ? "Local Mode" : "Live"}
+            </span>
           </div>
         </div>
 
@@ -379,7 +383,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
               hover:bg-emerald-500/25 hover:border-emerald-500/60
               hover:shadow-[0_0_12px_rgba(44,168,103,0.25)] transition-all duration-200"
           >
-            <MessageCircle className="h-3.5 w-3.5 animate-pulse" />
+            <BrainCircuit className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">AI Chat</span>
           </button>
           <button
