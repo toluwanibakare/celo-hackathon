@@ -19,7 +19,8 @@ import {
   X,
   CreditCard,
   AlertCircle,
-  MessageCircle
+  MessageCircle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
