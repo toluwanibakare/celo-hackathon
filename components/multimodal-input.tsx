@@ -218,18 +218,21 @@ function PureMultimodalInput({
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             className="absolute left-1/2 bottom-28 -translate-x-1/2 z-50"
           >
-            <Button
-              data-testid="scroll-to-bottom-button"
-              className="rounded-full"
-              size="icon"
-              variant="outline"
-              onClick={(event) => {
-                event.preventDefault();
-                scrollToBottom();
-              }}
-            >
-              <ArrowDown />
-            </Button>
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-pulse-ring" />
+              <Button
+                data-testid="scroll-to-bottom-button"
+                className="rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 shadow-[0_0_12px_rgba(44,168,103,0.2)]"
+                size="icon"
+                variant="outline"
+                onClick={(event) => {
+                  event.preventDefault();
+                  scrollToBottom();
+                }}
+              >
+                <ArrowDown />
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -279,11 +282,14 @@ function PureMultimodalInput({
       <Textarea
         data-testid="multimodal-input"
         ref={textareaRef}
-        placeholder="Send a message..."
+        placeholder="Ask your AI Financial Coach..."
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base pb-10',
+          'bg-card/60 backdrop-blur-sm border border-border/60',
+          'focus-visible:border-emerald-500/50 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:shadow-[0_0_20px_rgba(44,168,103,0.1)]',
+          'placeholder:text-muted-foreground/50 transition-all duration-200',
           className,
         )}
         rows={2}
@@ -347,7 +353,7 @@ function PureAttachmentsButton({
   return (
     <Button
       data-testid="attachments-button"
-      className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+      className="rounded-xl p-[7px] h-fit text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/20 transition-all duration-200"
       onClick={(event) => {
         event.preventDefault();
         fileInputRef.current?.click();
@@ -372,7 +378,7 @@ function PureStopButton({
   return (
     <Button
       data-testid="stop-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1.5 h-fit border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.1)] transition-all duration-200"
       onClick={(event) => {
         event.preventDefault();
         stop();
@@ -398,7 +404,7 @@ function PureSendButton({
   return (
     <Button
       data-testid="send-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1.5 h-fit border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 hover:shadow-[0_0_12px_rgba(44,168,103,0.25)] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
       onClick={(event) => {
         event.preventDefault();
         submitForm();

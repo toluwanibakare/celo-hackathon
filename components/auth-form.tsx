@@ -62,7 +62,8 @@ export function AuthForm({
         <Input
           id="email"
           name="email"
-          className="bg-slate-900 border-slate-800 text-slate-100 text-sm h-11 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl"
+          className="glass-input bg-transparent text-slate-100 text-sm h-11 rounded-xl
+            border-slate-700/50 focus-visible:ring-0 focus-visible:ring-offset-0"
           type="email"
           placeholder="your@email.com"
           autoComplete="email"
@@ -102,7 +103,8 @@ export function AuthForm({
               placeholder="8012345678"
               value={phoneBody}
               onChange={(e) => setPhoneBody(e.target.value.replace(/\D/g, ''))}
-              className="bg-slate-900 border-slate-800 text-slate-100 text-sm h-11 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl flex-1"
+              className="glass-input bg-transparent text-slate-100 text-sm h-11 rounded-xl
+                border-slate-700/50 focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
               required
             />
           </div>
@@ -150,7 +152,8 @@ export function AuthForm({
           <Input
             id="password"
             name="password"
-            className="bg-slate-900 border-slate-800 text-slate-100 text-sm h-11 pr-10 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl"
+            className="glass-input bg-transparent text-slate-100 text-sm h-11 pr-10 rounded-xl
+              border-slate-700/50 focus-visible:ring-0 focus-visible:ring-offset-0"
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -168,40 +171,42 @@ export function AuthForm({
 
       {/* DYNAMIC PASSWORD STRENGTH RULES */}
       {showStrengthRules && password.length > 0 && (
-        <div className="text-xs space-y-1.5 p-3 rounded-xl bg-slate-950 border border-slate-900">
-          <p className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+        <div className="text-xs space-y-2 p-3 rounded-xl border border-slate-700/50 bg-slate-950/60 backdrop-blur-sm">
+          <p className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-2">
             Security Requirements:
           </p>
-          <div className="flex items-center gap-2 text-slate-400">
-            {hasMinLength ? (
-              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 mx-1" />
-            )}
-            <span className={hasMinLength ? 'text-slate-300 font-medium' : ''}>
-              At least 6 characters
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-400">
-            {hasNumber ? (
-              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 mx-1" />
-            )}
-            <span className={hasNumber ? 'text-slate-300 font-medium' : ''}>
-              At least 1 digit (0-9)
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-400">
-            {hasSpecial ? (
-              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 mx-1" />
-            )}
-            <span className={hasSpecial ? 'text-slate-300 font-medium' : ''}>
-              At least 1 symbol (e.g. !, @, #)
-            </span>
-          </div>
+          {[
+            { met: hasMinLength, label: 'At least 6 characters' },
+            { met: hasNumber,    label: 'At least 1 digit (0-9)' },
+            { met: hasSpecial,   label: 'At least 1 symbol (e.g. !, @, #)' },
+          ].map(({ met, label }) => (
+            <div key={label} className="flex items-center gap-2.5 text-slate-400">
+              <div className="relative w-3.5 h-3.5 shrink-0">
+                {met ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-600 inline-block mt-1 ml-1" />
+                )}
+              </div>
+              {/* Animated progress bar */}
+              <div className="flex-1">
+                <div className="h-0.5 rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width: met ? '100%' : '0%',
+                      background: met
+                        ? 'linear-gradient(90deg, #2CA867, #4ade80)'
+                        : 'transparent',
+                    }}
+                  />
+                </div>
+              </div>
+              <span className={`text-[11px] ${met ? 'text-slate-300 font-medium' : 'text-slate-500'} transition-colors duration-300`}>
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 

@@ -16,6 +16,45 @@ const config: Config = {
       screens: {
         'toast-mobile': '600px',
       },
+      keyframes: {
+        'glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(44,168,103,0.15)' },
+          '50%':       { boxShadow: '0 0 40px rgba(44,168,103,0.4)' },
+        },
+        shimmer: {
+          '0%':   { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition:  '200% center' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%':       { transform: 'translateY(-6px)' },
+        },
+        'gradient-x': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%':       { backgroundPosition: '100% 50%' },
+        },
+        'slide-up-card': {
+          from: { opacity: '0', transform: 'translateY(24px) scale(0.97)' },
+          to:   { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'fade-up': {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
+        'pulse-ring': {
+          '0%':        { transform: 'scale(1)',   opacity: '0.8' },
+          '70%, 100%': { transform: 'scale(1.5)', opacity: '0' },
+        },
+      },
+      animation: {
+        'glow-pulse':    'glow-pulse 3s ease-in-out infinite',
+        shimmer:         'shimmer 2.5s linear infinite',
+        float:           'float 4s ease-in-out infinite',
+        'gradient-x':   'gradient-x 4s ease infinite',
+        'slide-up-card': 'slide-up-card 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards',
+        'fade-up':       'fade-up 0.5s ease forwards',
+        'pulse-ring':    'pulse-ring 1.8s ease-out infinite',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

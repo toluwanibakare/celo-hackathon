@@ -67,7 +67,9 @@ function PureChatHeader({
   }, []);
 
   return (
-    <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
+    <header className="flex sticky top-0 z-30 items-center px-2 md:px-3 gap-2 py-2
+      bg-background/80 backdrop-blur-md border-b border-border/40
+      shadow-[0_1px_0_rgba(44,168,103,0.08)]">
       <SidebarToggle />
 
       {(!open || windowWidth < 768) && (
@@ -75,7 +77,10 @@ function PureChatHeader({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
+              className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0
+                border-border/60 bg-card/60 backdrop-blur-sm
+                hover:border-emerald-500/40 hover:bg-emerald-500/5 hover:text-emerald-400
+                transition-all duration-200"
               onClick={() => {
                 router.push("/");
                 router.refresh();
@@ -105,16 +110,16 @@ function PureChatHeader({
               } catch {}
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-border/60 bg-card/60 backdrop-blur-sm hover:border-emerald-500/30 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all duration-200">
               <SelectValue
                 placeholder={
                   loadingModels ? "Loading models..." : "Select model"
                 }
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-border/60 bg-card/95 backdrop-blur-xl">
               {models.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
+                <SelectItem key={m.id} value={m.id} className="hover:bg-emerald-500/10 focus:bg-emerald-500/10">
                   {m.name} {m.reasoning ? "(Reasoning)" : ""}
                 </SelectItem>
               ))}
