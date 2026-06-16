@@ -128,12 +128,13 @@ export const savingsGoal = pgTable('SavingsGoal', {
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),
-  title: text('title').notNull(),
+  title: text('goal_name').notNull(), // Map drizzle title to goal_name column in Postgres
   targetAmount: numeric('targetAmount', { precision: 18, scale: 2 }).notNull(),
   currentAmount: numeric('currentAmount', { precision: 18, scale: 2 }).notNull().default('0'),
   targetDate: timestamp('targetDate').notNull(),
   vaultAddress: varchar('vaultAddress', { length: 66 }),
   vaultPrivateKey: varchar('vaultPrivateKey', { length: 128 }),
+  walletAddress: varchar('walletAddress', { length: 66 }),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 
@@ -149,6 +150,7 @@ export const bill = pgTable('Bill', {
   dueDate: timestamp('dueDate').notNull(),
   frequency: varchar('frequency', { length: 32 }).notNull().default('monthly'), // 'monthly', 'weekly', 'once'
   isPaid: boolean('isPaid').notNull().default(false),
+  walletAddress: varchar('walletAddress', { length: 66 }),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 

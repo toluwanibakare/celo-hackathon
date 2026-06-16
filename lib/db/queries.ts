@@ -622,6 +622,9 @@ export async function createSavingsGoal(
     }) as any;
   }
   try {
+    const userObj = await getUserById(userId);
+    const walletAddress = userObj?.walletAddress || null;
+
     const [created] = await db
       .insert(savingsGoal)
       .values({
@@ -632,6 +635,7 @@ export async function createSavingsGoal(
         targetDate: data.targetDate,
         vaultAddress: data.vaultAddress,
         vaultPrivateKey: data.vaultPrivateKey,
+        walletAddress,
       })
       .returning();
     return created || null;
@@ -696,6 +700,9 @@ export async function createBill(
     }) as any;
   }
   try {
+    const userObj = await getUserById(userId);
+    const walletAddress = userObj?.walletAddress || null;
+
     const [created] = await db
       .insert(bill)
       .values({
@@ -704,6 +711,7 @@ export async function createBill(
         amount: data.amount,
         dueDate: data.dueDate,
         frequency: data.frequency || "monthly",
+        walletAddress,
       })
       .returning();
     return created || null;
