@@ -355,14 +355,6 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                 Celo Sepolia
               </span>
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`inline-flex items-center gap-1 text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider border ${
-                isMock ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              }`}>
-                <span className={`w-1 h-1 rounded-full inline-block ${isMock ? 'bg-yellow-400' : 'bg-emerald-400 animate-pulse'}`} />
-                {isMock ? "Local Mode" : "Live"}
-              </span>
-            </div>
           </div>
         </div>
 
