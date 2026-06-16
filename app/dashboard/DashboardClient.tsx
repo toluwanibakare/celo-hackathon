@@ -688,7 +688,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                   Bill Planner
                   <div className="w-5 h-px bg-yellow-500/50" />
                 </span>
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setShowBillModal(true)}
                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl
@@ -697,7 +697,7 @@ export function DashboardClient({ user, isMock = false }: { user: User; isMock?:
                     hover:shadow-[0_0_12px_rgba(251,204,92,0.15)] transition-all duration-200 font-semibold"
                 >
                   <Plus className="h-3.5 w-3.5" /> Add Bill
-                </button>
+                </button> */}
               </div>
 
               {bills.length === 0 ? (
